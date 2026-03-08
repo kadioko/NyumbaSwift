@@ -1,4 +1,5 @@
 from pydantic_settings import BaseSettings
+import os
 
 
 class Settings(BaseSettings):
@@ -7,7 +8,12 @@ class Settings(BaseSettings):
     DEBUG: bool = True
 
     # Database
-    DATABASE_URL: str = "sqlite:///./nyumbaswift.db"
+    DATABASE_URL: str = os.getenv(
+        "DATABASE_URL",
+        "sqlite:////tmp/nyumbaswift.db"
+        if os.getenv("VERCEL")
+        else "sqlite:///./nyumbaswift.db",
+    )
 
     # JWT Auth
     SECRET_KEY: str = "nyumbaswift-dev-secret-change-in-production"
