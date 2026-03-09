@@ -1,9 +1,22 @@
 {
   "version": 2,
+  "builds": [
+    {
+      "src": "api/backend.py",
+      "use": "@vercel/python",
+      "config": {
+        "includeFiles": [
+          "index.html",
+          "vite.svg",
+          "assets/**"
+        ]
+      }
+    }
+  ],
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "api/index.py"
+      "dest": "api/backend.py"
     }
   ]
 }
