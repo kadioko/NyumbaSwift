@@ -12,6 +12,10 @@ import MyRentals from './pages/MyRentals'
 import Agents from './pages/Agents'
 import AgentApply from './pages/AgentApply'
 import Profile from './pages/Profile'
+import AboutNyumbaSwift from './pages/AboutNyumbaSwift'
+import BecomeAgentInfo from './pages/BecomeAgentInfo'
+import TermsConditions from './pages/TermsConditions'
+import PrivacyPolicy from './pages/PrivacyPolicy'
 
 export default function App() {
   return (
@@ -30,6 +34,10 @@ export default function App() {
           <Route path="/agents" element={<Agents />} />
           <Route path="/agents/apply" element={<AgentApply />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/about" element={<AboutNyumbaSwift />} />
+          <Route path="/become-an-agent" element={<BecomeAgentInfo />} />
+          <Route path="/terms" element={<TermsConditions />} />
+          <Route path="/privacy" element={<PrivacyPolicy />} />
         </Routes>
       </main>
       <Footer />

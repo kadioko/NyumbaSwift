@@ -1,4 +1,5 @@
 import { Home } from 'lucide-react'
+import { Link } from 'react-router-dom'
 
 export default function Footer() {
   return (
@@ -20,30 +21,30 @@ export default function Footer() {
           <div>
             <h4 className="font-semibold text-white mb-3">For Renters</h4>
             <ul className="space-y-2 text-sm">
-              <li>Search Properties</li>
-              <li>Verified Listings</li>
-              <li>Pay Rent Online</li>
-              <li>Find Agents</li>
+              <li><Link to="/properties" className="hover:text-white transition-colors">Search Properties</Link></li>
+              <li><Link to="/properties" className="hover:text-white transition-colors">Verified Listings</Link></li>
+              <li><Link to="/my-rentals" className="hover:text-white transition-colors">Pay Rent Online</Link></li>
+              <li><Link to="/agents" className="hover:text-white transition-colors">Find Agents</Link></li>
             </ul>
           </div>
 
           <div>
             <h4 className="font-semibold text-white mb-3">For Landlords</h4>
             <ul className="space-y-2 text-sm">
-              <li>List Property</li>
-              <li>Collect Rent</li>
-              <li>Manage Tenants</li>
-              <li>Premium Listings</li>
+              <li><Link to="/properties/new" className="hover:text-white transition-colors">List Property</Link></li>
+              <li><Link to="/dashboard" className="hover:text-white transition-colors">Collect Rent</Link></li>
+              <li><Link to="/dashboard" className="hover:text-white transition-colors">Manage Tenants</Link></li>
+              <li><Link to="/properties" className="hover:text-white transition-colors">Premium Listings</Link></li>
             </ul>
           </div>
 
           <div>
             <h4 className="font-semibold text-white mb-3">Company</h4>
             <ul className="space-y-2 text-sm">
-              <li>About NyumbaSwift</li>
-              <li>Become an Agent</li>
-              <li>Terms & Conditions</li>
-              <li>Privacy Policy</li>
+              <li><Link to="/about" className="hover:text-white transition-colors">About NyumbaSwift</Link></li>
+              <li><Link to="/become-an-agent" className="hover:text-white transition-colors">Become an Agent</Link></li>
+              <li><Link to="/terms" className="hover:text-white transition-colors">Terms & Conditions</Link></li>
+              <li><Link to="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link></li>
             </ul>
           </div>
         </div>

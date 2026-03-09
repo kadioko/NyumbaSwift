@@ -42,6 +42,11 @@ testpass123
 | 2BR Furnished Apartment in Mikocheni | Lydia Landlord | Kinondoni | 850000 | 2 image URLs |
 | Modern Studio near Kariakoo | Lydia Landlord | Ilala | 420000 | 2 image URLs |
 | 3BR Family House in Temeke | Musa Landlord | Temeke | 650000 | 2 image URLs |
+| Affordable Ensuite Room in Ubungo | Musa Landlord | Ubungo | 260000 | 2 image URLs |
+| Executive 3BR Apartment in Masaki | Lydia Landlord | Kinondoni | 1800000 | 2 image URLs |
+| Beachside 4BR House in Kigamboni | Musa Landlord | Kigamboni | 1250000 | 2 image URLs |
+| Street Front Commercial Space in Ilala | Lydia Landlord | Ilala | 900000 | 2 image URLs |
+| New Studio Apartment in Mbezi Beach | Musa Landlord | Kinondoni | 380000 | 2 image URLs |
 
 ## Seeded rentals and payment state
 
