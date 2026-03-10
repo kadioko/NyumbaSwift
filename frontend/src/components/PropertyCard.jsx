@@ -12,15 +12,25 @@ const TYPE_LABELS = {
 export default function PropertyCard({ property }) {
   const {
     id, title, district, ward, property_type, rent_amount,
-    bedrooms, bathrooms, is_verified, is_premium, furnished,
+    bedrooms, bathrooms, is_verified, is_premium, furnished, photos,
   } = property
+  const primaryPhoto = photos?.find((photo) => photo.is_primary)?.photo_url || photos?.[0]?.photo_url
 
   return (
     <Link to={`/properties/${id}`} className="group block">
       <div className={`bg-white rounded-xl border overflow-hidden transition-all hover:shadow-lg ${is_premium ? 'border-amber-300 ring-1 ring-amber-200' : 'border-gray-200'}`}>
-        {/* Image placeholder */}
-        <div className="relative h-48 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
-          <div className="text-gray-400 text-sm">Property Photo</div>
+        <div className="relative h-48 bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden">
+          {primaryPhoto ? (
+            <img
+              src={primaryPhoto}
+              alt={title}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+              loading="lazy"
+              referrerPolicy="no-referrer"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm">Property Photo</div>
+          )}
           <div className="absolute top-3 left-3 flex gap-1.5">
             {is_premium && (
               <span className="inline-flex items-center gap-1 bg-amber-500 text-white text-xs font-semibold px-2 py-0.5 rounded-full">

@@ -8,13 +8,21 @@ export default function PropertyDetail() {
   const { id } = useParams()
   const { user } = useAuth()
   const [property, setProperty] = useState(null)
+  const [selectedPhoto, setSelectedPhoto] = useState('')
   const [loading, setLoading] = useState(true)
-  const [unlocked, setUnlocked] = useState(null)
+  const [unlockStatus, setUnlockStatus] = useState(null)
   const [unlocking, setUnlocking] = useState(false)
   const [error, setError] = useState('')
 
   useEffect(() => {
-    propApi.get(id).then(setProperty).catch(() => setError('Property not found')).finally(() => setLoading(false))
+    propApi.get(id)
+      .then((data) => {
+        setProperty(data)
+        const initialPhoto = data.photos?.find((photo) => photo.is_primary)?.photo_url || data.photos?.[0]?.photo_url || ''
+        setSelectedPhoto(initialPhoto)
+      })
+      .catch(() => setError('Property not found'))
+      .finally(() => setLoading(false))
   }, [id])
 
   const handleUnlock = async () => {
@@ -22,13 +30,42 @@ export default function PropertyDetail() {
     setError('')
     try {
       const data = await rentals.unlock({ property_id: Number(id) })
-      setUnlocked(data)
+      setUnlockStatus(data)
     } catch (err) {
       setError(err.message)
     } finally {
       setUnlocking(false)
     }
   }
+
+  useEffect(() => {
+    if (!user) {
+      setUnlockStatus(null)
+      return
+    }
+
+    rentals.unlockStatus(Number(id))
+      .then(setUnlockStatus)
+      .catch((err) => {
+        if (!String(err.message).includes('Unlock not found')) {
+          setError(err.message)
+        }
+      })
+  }, [id, user])
+
+  useEffect(() => {
+    const intervalId = setInterval(async () => {
+      if (unlockStatus?.payment_status === 'pending') {
+        try {
+          const data = await rentals.unlockStatus(Number(id))
+          setUnlockStatus(data)
+        } catch (err) {
+          setError(err.message)
+        }
+      }
+    }, 5000)
+    return () => clearInterval(intervalId)
+  }, [id, unlockStatus])
 
   if (loading) {
     return (
@@ -55,6 +92,11 @@ export default function PropertyDetail() {
     { label: 'Furnished', available: property.furnished, icon: Zap },
   ]
 
+  const photos = property.photos || []
+  const heroPhoto = selectedPhoto || photos.find((photo) => photo.is_primary)?.photo_url || photos[0]?.photo_url
+  const isUnlocked = unlockStatus?.payment_status === 'completed' && unlockStatus?.owner_phone
+  const isPendingUnlock = unlockStatus?.payment_status === 'pending'
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -65,9 +107,17 @@ export default function PropertyDetail() {
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Main content */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Image */}
-            <div className="relative h-64 sm:h-80 lg:h-96 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl flex items-center justify-center">
-              <span className="text-gray-400">Property Photos</span>
+            <div className="relative h-64 sm:h-80 lg:h-96 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl overflow-hidden">
+              {heroPhoto ? (
+                <img
+                  src={heroPhoto}
+                  alt={property.title}
+                  className="w-full h-full object-cover"
+                  referrerPolicy="no-referrer"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-gray-400">Property Photos</div>
+              )}
               <div className="absolute top-4 left-4 flex gap-2">
                 {property.is_premium && (
                   <span className="inline-flex items-center gap-1 bg-amber-500 text-white text-xs font-semibold px-2.5 py-1 rounded-full">
@@ -112,20 +162,44 @@ export default function PropertyDetail() {
               <div className="mt-6">
                 <h3 className="font-semibold text-gray-900 mb-3">Amenities</h3>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                  {amenities.map(({ label, available, icon: Icon }) => (
-                    <div
-                      key={label}
-                      className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm ${
-                        available ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-50 text-gray-400'
-                      }`}
-                    >
-                      <Icon className="w-4 h-4" />
-                      <span>{label}</span>
-                    </div>
-                  ))}
+                  {amenities.map(({ label, available, icon }) => {
+                    const Icon = icon
+                    return (
+                      <div
+                        key={label}
+                        className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm ${
+                          available ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-50 text-gray-400'
+                        }`}
+                      >
+                        <Icon className="w-4 h-4" />
+                        <span>{label}</span>
+                      </div>
+                    )
+                  })}
                 </div>
               </div>
             </div>
+
+            {photos.length > 1 && (
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                {photos.map((photo) => (
+                  <button
+                    key={photo.id}
+                    type="button"
+                    onClick={() => setSelectedPhoto(photo.photo_url)}
+                    className={`rounded-xl overflow-hidden border-2 transition-all ${selectedPhoto === photo.photo_url ? 'border-emerald-500' : 'border-transparent hover:border-emerald-200'}`}
+                  >
+                    <img
+                      src={photo.photo_url}
+                      alt={property.title}
+                      className="w-full h-24 object-cover"
+                      loading="lazy"
+                      referrerPolicy="no-referrer"
+                    />
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Sidebar */}
@@ -154,7 +228,13 @@ export default function PropertyDetail() {
                 </div>
               )}
 
-              {unlocked ? (
+              {unlockStatus?.message && !error && (
+                <div className={`px-3 py-2 rounded-lg mb-4 text-sm ${isPendingUnlock ? 'bg-amber-50 text-amber-800' : 'bg-emerald-50 text-emerald-700'}`}>
+                  {unlockStatus.message}
+                </div>
+              )}
+
+              {isUnlocked ? (
                 <div className="bg-emerald-50 rounded-xl p-4">
                   <div className="flex items-center gap-2 text-emerald-700 font-semibold mb-3">
                     <Lock className="w-4 h-4" /> Contact Unlocked
@@ -162,12 +242,21 @@ export default function PropertyDetail() {
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 text-gray-700">
                       <Phone className="w-4 h-4 text-emerald-600" />
-                      <span className="font-medium">{unlocked.owner_phone}</span>
+                      <span className="font-medium">{unlockStatus.owner_phone}</span>
                     </div>
                     <div className="text-sm text-gray-600">
-                      Owner: {unlocked.owner_name}
+                      Owner: {unlockStatus.owner_name}
                     </div>
                   </div>
+                </div>
+              ) : isPendingUnlock ? (
+                <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+                  <div className="flex items-center gap-2 text-amber-800 font-semibold mb-2">
+                    <Loader2 className="w-4 h-4 animate-spin" /> Payment Pending
+                  </div>
+                  <p className="text-sm text-amber-700 leading-relaxed">
+                    Approve the mobile money prompt on your phone. This page checks automatically and will reveal the landlord contact once Snippe confirms the payment.
+                  </p>
                 </div>
               ) : user ? (
                 <button

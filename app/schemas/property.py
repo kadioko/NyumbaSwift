@@ -5,6 +5,14 @@ from pydantic import BaseModel
 from app.models.property import ListingStatus, PropertyType
 
 
+class PropertyPhotoResponse(BaseModel):
+    id: int
+    photo_url: str
+    is_primary: bool
+
+    model_config = {"from_attributes": True}
+
+
 class PropertyCreate(BaseModel):
     title: str
     description: str
@@ -61,6 +69,7 @@ class PropertyResponse(BaseModel):
     is_premium: bool
     is_verified: bool
     created_at: datetime
+    photos: list[PropertyPhotoResponse] = []
 
     model_config = {"from_attributes": True}
 

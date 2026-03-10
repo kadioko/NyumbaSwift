@@ -56,8 +56,12 @@ class ListingUnlockResponse(BaseModel):
     renter_id: int
     property_id: int
     amount_paid: int
-    owner_phone: str
-    owner_name: str
+    owner_phone: str | None = None
+    owner_name: str | None = None
+    payment_status: str = "completed"
+    payment_reference: str | None = None
+    message: str | None = None
+    already_unlocked: bool = False
     created_at: datetime
 
     model_config = {"from_attributes": True}

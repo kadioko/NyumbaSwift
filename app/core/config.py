@@ -34,6 +34,12 @@ class Settings(BaseSettings):
     MPESA_PUBLIC_KEY: str = ""
     MPESA_SERVICE_PROVIDER_CODE: str = ""
 
+    # Snippe config
+    SNIPPE_BASE_URL: str = "https://api.snippe.sh"
+    SNIPPE_API_KEY: str = os.getenv("SNIPPE_API_KEY", "")
+    SNIPPE_WEBHOOK_SECRET: str = os.getenv("SNIPPE_WEBHOOK_SECRET", "")
+    PUBLIC_BASE_URL: str = os.getenv("PUBLIC_BASE_URL", "https://nyumbaswift.vercel.app")
+
     model_config = {"env_file": ".env"}
 
 

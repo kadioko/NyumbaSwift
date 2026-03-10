@@ -52,6 +52,7 @@ export const rentals = {
   confirmPayment: (id, ref) => request(`/rentals/payments/${id}/confirm?mpesa_reference=${ref}`, { method: 'POST' }),
   paymentHistory: () => request('/rentals/payments/history'),
   unlock: (body) => request('/rentals/unlock', { method: 'POST', body: JSON.stringify(body) }),
+  unlockStatus: (propertyId) => request(`/rentals/unlock/${propertyId}`),
 }
 
 // Agents
