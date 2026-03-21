@@ -1,22 +1,51 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Building, Users, CreditCard, TrendingUp, Plus, Loader2, AlertCircle, ChevronRight } from 'lucide-react'
-import { dashboard as dashApi } from '../services/api'
-import { useAuth } from '../context/AuthContext'
+import { Building, Users, CreditCard, TrendingUp, Plus, Loader2, ChevronRight, ShieldCheck, Mail, Phone } from 'lucide-react'
+import { auth as authApi, dashboard as dashApi } from '../services/api'
+import { useAuth } from '../context/useAuth'
 
 export default function Dashboard() {
   const { user } = useAuth()
+  const isAdmin = user?.role === 'admin'
   const [summary, setSummary] = useState(null)
   const [properties, setProperties] = useState([])
+  const [pendingVerifications, setPendingVerifications] = useState([])
   const [loading, setLoading] = useState(true)
-  const [tab, setTab] = useState('overview')
+  const [tab, setTab] = useState(isAdmin ? 'overview' : 'overview')
+  const [reviewingId, setReviewingId] = useState(null)
 
   useEffect(() => {
-    Promise.all([dashApi.landlordSummary(), dashApi.landlordProperties()])
-      .then(([s, p]) => { setSummary(s); setProperties(p) })
+    if (!user) return
+
+    const requests = isAdmin
+      ? Promise.all([dashApi.platformStats(), authApi.pendingVerifications()])
+      : Promise.all([dashApi.landlordSummary(), dashApi.landlordProperties()])
+
+    requests
+      .then((data) => {
+        if (isAdmin) {
+          const [stats, pending] = data
+          setSummary(stats)
+          setPendingVerifications(pending)
+        } else {
+          const [stats, landlordProperties] = data
+          setSummary(stats)
+          setProperties(landlordProperties)
+        }
+      })
       .catch(() => {})
       .finally(() => setLoading(false))
-  }, [])
+  }, [isAdmin, user])
+
+  const handleReviewVerification = async (userId, verification_status) => {
+    setReviewingId(userId)
+    try {
+      const updated = await authApi.reviewVerification(userId, { verification_status })
+      setPendingVerifications((current) => current.filter((item) => item.id !== updated.id))
+    } finally {
+      setReviewingId(null)
+    }
+  }
 
   if (loading) {
     return (
@@ -29,9 +58,11 @@ export default function Dashboard() {
   const stats = summary ? [
     { label: 'Total Properties', value: summary.total_properties, icon: Building, color: 'bg-blue-50 text-blue-600' },
     { label: 'Active Listings', value: summary.active_listings, icon: TrendingUp, color: 'bg-emerald-50 text-emerald-600' },
-    { label: 'Active Tenants', value: summary.active_rentals, icon: Users, color: 'bg-purple-50 text-purple-600' },
-    { label: 'Rent Collected', value: `TZS ${summary.total_rent_collected_tzs?.toLocaleString()}`, icon: CreditCard, color: 'bg-amber-50 text-amber-600' },
+    { label: isAdmin ? 'Active Rentals' : 'Active Tenants', value: summary.active_rentals, icon: Users, color: 'bg-purple-50 text-purple-600' },
+    { label: isAdmin ? 'Platform Revenue' : 'Rent Collected', value: `TZS ${(isAdmin ? summary.total_platform_revenue_tzs : summary.total_rent_collected_tzs)?.toLocaleString()}`, icon: CreditCard, color: 'bg-amber-50 text-amber-600' },
   ] : []
+
+  const tabs = isAdmin ? ['overview', 'verifications'] : ['overview', 'properties']
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -42,16 +73,18 @@ export default function Dashboard() {
               <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
               <p className="text-gray-500 mt-0.5">Welcome back, {user?.full_name}</p>
             </div>
-            <Link
-              to="/properties/new"
-              className="inline-flex items-center gap-2 bg-emerald-600 text-white px-4 py-2.5 rounded-lg font-medium hover:bg-emerald-700 transition-colors"
-            >
-              <Plus className="w-4 h-4" /> Add Property
-            </Link>
+            {!isAdmin && (
+              <Link
+                to="/properties/new"
+                className="inline-flex items-center gap-2 bg-emerald-600 text-white px-4 py-2.5 rounded-lg font-medium hover:bg-emerald-700 transition-colors"
+              >
+                <Plus className="w-4 h-4" /> Add Property
+              </Link>
+            )}
           </div>
 
           <div className="flex gap-1 mt-6 -mb-px">
-            {['overview', 'properties'].map((t) => (
+            {tabs.map((t) => (
               <button
                 key={t}
                 onClick={() => setTab(t)}
@@ -71,7 +104,6 @@ export default function Dashboard() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {tab === 'overview' && (
           <div className="space-y-6">
-            {/* Stats grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {stats.map(({ label, value, icon: Icon, color }) => (
                 <div key={label} className="bg-white rounded-xl border border-gray-200 p-5">
@@ -86,30 +118,27 @@ export default function Dashboard() {
               ))}
             </div>
 
-            {/* Revenue summary */}
-            {summary && (
-              <div className="bg-white rounded-xl border border-gray-200 p-6">
-                <h3 className="font-semibold text-gray-900 mb-4">Revenue Summary</h3>
-                <div className="grid sm:grid-cols-3 gap-6">
-                  <div>
-                    <div className="text-sm text-gray-500 mb-1">Total Rent Collected</div>
-                    <div className="text-xl font-bold text-gray-900">TZS {summary.total_rent_collected_tzs?.toLocaleString()}</div>
-                  </div>
-                  <div>
-                    <div className="text-sm text-gray-500 mb-1">Platform Fees Paid</div>
-                    <div className="text-xl font-bold text-gray-900">TZS {summary.total_platform_fees_tzs?.toLocaleString()}</div>
-                  </div>
-                  <div>
-                    <div className="text-sm text-gray-500 mb-1">Pending Payments</div>
-                    <div className="text-xl font-bold text-amber-600">{summary.pending_payments}</div>
-                  </div>
+            <div className="bg-white rounded-xl border border-gray-200 p-6">
+              <h3 className="font-semibold text-gray-900 mb-4">{isAdmin ? 'Platform Summary' : 'Revenue Summary'}</h3>
+              <div className="grid sm:grid-cols-3 gap-6">
+                <div>
+                  <div className="text-sm text-gray-500 mb-1">{isAdmin ? 'Rent Processed' : 'Total Rent Collected'}</div>
+                  <div className="text-xl font-bold text-gray-900">TZS {(isAdmin ? summary.total_rent_processed_tzs : summary.total_rent_collected_tzs)?.toLocaleString()}</div>
+                </div>
+                <div>
+                  <div className="text-sm text-gray-500 mb-1">{isAdmin ? 'Unlock Revenue' : 'Platform Fees Paid'}</div>
+                  <div className="text-xl font-bold text-gray-900">TZS {(isAdmin ? summary.unlock_fees_revenue_tzs : summary.total_platform_fees_tzs)?.toLocaleString()}</div>
+                </div>
+                <div>
+                  <div className="text-sm text-gray-500 mb-1">{isAdmin ? 'Pending Verifications' : 'Pending Payments'}</div>
+                  <div className="text-xl font-bold text-amber-600">{isAdmin ? pendingVerifications.length : summary.pending_payments}</div>
                 </div>
               </div>
-            )}
+            </div>
           </div>
         )}
 
-        {tab === 'properties' && (
+        {!isAdmin && tab === 'properties' && (
           <div className="space-y-4">
             {properties.length === 0 ? (
               <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
@@ -151,6 +180,74 @@ export default function Dashboard() {
                     <Link to={`/properties/${p.property_id}`} className="text-gray-400 hover:text-emerald-600">
                       <ChevronRight className="w-5 h-5" />
                     </Link>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+
+        {isAdmin && tab === 'verifications' && (
+          <div className="space-y-4">
+            {pendingVerifications.length === 0 ? (
+              <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
+                <ShieldCheck className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                <h3 className="font-semibold text-gray-700 mb-1">No pending user verifications</h3>
+                <p className="text-gray-500">New renter and user submissions will appear here for admin review.</p>
+              </div>
+            ) : (
+              pendingVerifications.map((pendingUser) => (
+                <div key={pendingUser.id} className="bg-white rounded-2xl border border-gray-200 p-6">
+                  <div className="flex flex-col lg:flex-row gap-6">
+                    <div className="flex-1 space-y-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center font-semibold text-emerald-700">
+                          {pendingUser.full_name?.charAt(0)}
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-gray-900">{pendingUser.full_name}</h3>
+                          <div className="text-sm text-gray-500 capitalize">{pendingUser.role}</div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <Phone className="w-4 h-4 text-gray-400" />
+                        <span>{pendingUser.phone}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <Mail className="w-4 h-4 text-gray-400" />
+                        <span>{pendingUser.email || 'No email provided'}</span>
+                      </div>
+                      <div className="text-sm text-gray-600">
+                        National ID: <span className="font-medium text-gray-800">{pendingUser.national_id || 'Not provided'}</span>
+                      </div>
+                      <div className="flex gap-3 pt-2">
+                        <button
+                          type="button"
+                          disabled={reviewingId === pendingUser.id}
+                          onClick={() => handleReviewVerification(pendingUser.id, 'verified')}
+                          className="px-4 py-2 rounded-lg bg-emerald-600 text-white font-medium hover:bg-emerald-700 disabled:opacity-50"
+                        >
+                          {reviewingId === pendingUser.id ? 'Saving...' : 'Verify User'}
+                        </button>
+                        <button
+                          type="button"
+                          disabled={reviewingId === pendingUser.id}
+                          onClick={() => handleReviewVerification(pendingUser.id, 'rejected')}
+                          className="px-4 py-2 rounded-lg border border-red-200 text-red-600 font-medium hover:bg-red-50 disabled:opacity-50"
+                        >
+                          Reject
+                        </button>
+                      </div>
+                    </div>
+                    <div className="lg:w-[320px]">
+                      {pendingUser.profile_photo_url ? (
+                        <img src={pendingUser.profile_photo_url} alt={`${pendingUser.full_name} ID`} className="w-full max-h-80 object-contain rounded-xl border border-gray-200 bg-gray-50" />
+                      ) : (
+                        <div className="h-full min-h-48 rounded-xl border border-dashed border-gray-300 flex items-center justify-center text-sm text-gray-400">
+                          No National ID image uploaded
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))

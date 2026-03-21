@@ -1,17 +1,28 @@
 import { useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { auth as authApi } from '../services/api'
-import { User, Phone, Mail, Shield, AlertCircle, CheckCircle, Loader2 } from 'lucide-react'
+import { Phone, Mail, Shield, AlertCircle, CheckCircle, Loader2, Image as ImageIcon } from 'lucide-react'
 
 export default function Profile() {
   const { user, setUser } = useAuth()
   const [editing, setEditing] = useState(false)
   const [form, setForm] = useState({ full_name: user?.full_name || '', email: user?.email || '' })
-  const [nationalId, setNationalId] = useState('')
+  const [nationalId, setNationalId] = useState(user?.national_id || '')
+  const [idImage, setIdImage] = useState(user?.profile_photo_url || '')
   const [saving, setSaving] = useState(false)
   const [verifying, setVerifying] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+
+  const handleIdImageChange = (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = () => {
+      setIdImage(String(reader.result || ''))
+    }
+    reader.readAsDataURL(file)
+  }
 
   const handleSave = async (e) => {
     e.preventDefault()
@@ -35,9 +46,8 @@ export default function Profile() {
     setVerifying(true)
     setError('')
     try {
-      const updated = await authApi.verify({ national_id: nationalId })
+      const updated = await authApi.verify({ national_id: nationalId, profile_photo_url: idImage })
       setUser(updated)
-      setNationalId('')
       setSuccess('Verification submitted')
       setTimeout(() => setSuccess(''), 3000)
     } catch (err) {
@@ -72,7 +82,6 @@ export default function Profile() {
           </div>
         )}
 
-        {/* Profile card */}
         <div className="bg-white rounded-2xl border border-gray-200 p-6">
           <div className="flex items-center gap-4 mb-6">
             <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center text-2xl font-bold text-emerald-700">
@@ -124,10 +133,13 @@ export default function Profile() {
                 <Phone className="w-4 h-4 text-gray-400" />
                 <span>{user.phone}</span>
               </div>
-              {user.email && (
-                <div className="flex items-center gap-3 text-gray-600">
-                  <Mail className="w-4 h-4 text-gray-400" />
-                  <span>{user.email}</span>
+              <div className="flex items-center gap-3 text-gray-600">
+                <Mail className="w-4 h-4 text-gray-400" />
+                <span>{user.email || 'No email added yet'}</span>
+              </div>
+              {user.national_id && (
+                <div className="text-sm text-gray-500">
+                  National ID: <span className="font-medium text-gray-700">{user.national_id}</span>
                 </div>
               )}
               <button onClick={() => setEditing(true)} className="mt-4 text-emerald-600 text-sm font-medium hover:text-emerald-700">
@@ -137,29 +149,56 @@ export default function Profile() {
           )}
         </div>
 
-        {/* Verification */}
-        {user.verification_status === 'unverified' && (
+        {(user.verification_status === 'unverified' || user.verification_status === 'rejected') && (
           <div className="bg-white rounded-2xl border border-gray-200 p-6">
             <div className="flex items-center gap-3 mb-4">
               <Shield className="w-5 h-5 text-emerald-600" />
               <h3 className="font-semibold text-gray-900">Verify Your Identity</h3>
             </div>
             <p className="text-sm text-gray-500 mb-4">
-              Submit your national ID to get verified. Verified users get priority access and more trust from landlords.
+              Add your email, national ID number, and upload an ID image so admins can review and verify your account.
             </p>
-            <form onSubmit={handleVerify} className="flex gap-3">
+            <form onSubmit={handleVerify} className="space-y-4">
+              {!user.email && (
+                <div className="rounded-lg bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-800">
+                  Add your email address in the profile section above before submitting verification or unlocking contact details.
+                </div>
+              )}
               <input
                 type="text"
                 placeholder="National ID number"
                 value={nationalId}
                 onChange={(e) => setNationalId(e.target.value)}
-                className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
                 required
               />
-              <button type="submit" disabled={verifying} className="bg-emerald-600 text-white px-4 py-2.5 rounded-lg font-medium hover:bg-emerald-700 disabled:opacity-50">
-                {verifying ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Submit'}
+              <label className="flex items-center justify-center gap-2 border border-dashed border-gray-300 rounded-xl px-4 py-6 text-sm text-gray-600 hover:border-emerald-400 hover:text-emerald-700 transition-colors cursor-pointer">
+                <ImageIcon className="w-4 h-4" />
+                <span>{idImage ? 'Replace National ID image' : 'Upload National ID image'}</span>
+                <input type="file" accept="image/*" className="hidden" onChange={handleIdImageChange} />
+              </label>
+              {idImage && (
+                <img src={idImage} alt="National ID preview" className="w-full max-h-64 object-contain rounded-xl border border-gray-200 bg-gray-50" />
+              )}
+              <button type="submit" disabled={verifying || !user.email || !idImage} className="bg-emerald-600 text-white px-4 py-2.5 rounded-lg font-medium hover:bg-emerald-700 disabled:opacity-50 inline-flex items-center gap-2">
+                {verifying ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Submit Verification'}
               </button>
             </form>
+          </div>
+        )}
+
+        {user.verification_status === 'pending' && (
+          <div className="bg-white rounded-2xl border border-amber-200 p-6">
+            <div className="flex items-center gap-3 mb-3 text-amber-800">
+              <Shield className="w-5 h-5" />
+              <h3 className="font-semibold">Verification Pending Review</h3>
+            </div>
+            <p className="text-sm text-gray-600 mb-4">
+              Your National ID details have been submitted. An admin will review them and verify your account once everything checks out.
+            </p>
+            {user.profile_photo_url && (
+              <img src={user.profile_photo_url} alt="Submitted National ID" className="w-full max-h-64 object-contain rounded-xl border border-gray-200 bg-gray-50" />
+            )}
           </div>
         )}
       </div>

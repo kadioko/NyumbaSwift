@@ -83,6 +83,24 @@ USER_SEEDS = [
         "national_id": "TZ-BROKER-0008",
         "profile_photo_url": "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=400&q=80",
     },
+    {
+        "phone": "0711000009",
+        "full_name": "Asha Pending",
+        "email": "asha.pending@nyumbaswift.local",
+        "role": UserRole.RENTER,
+        "verification_status": VerificationStatus.PENDING,
+        "national_id": "TZ-RENTER-0009",
+        "profile_photo_url": "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=400&q=80",
+    },
+    {
+        "phone": "0711000010",
+        "full_name": "Baraka Rejected",
+        "email": "baraka.rejected@nyumbaswift.local",
+        "role": UserRole.RENTER,
+        "verification_status": VerificationStatus.REJECTED,
+        "national_id": "TZ-RENTER-0010",
+        "profile_photo_url": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=80",
+    },
 ]
 
 PROPERTY_SEEDS = [

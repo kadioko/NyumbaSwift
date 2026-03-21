@@ -26,6 +26,8 @@ testpass123
 | Renter | Rehema Renter | 0711000006 | rehema.renter@nyumbaswift.local | Active tenant on Mikocheni apartment |
 | Renter | Juma Renter | 0711000007 | juma.renter@nyumbaswift.local | Active tenant on Temeke house |
 | Agent Pending | Zawadi Broker | 0711000008 | zawadi.broker@nyumbaswift.local | Pending agent application |
+| Renter Pending | Asha Pending | 0711000009 | asha.pending@nyumbaswift.local | Pending verification review with ID image |
+| Renter Rejected | Baraka Rejected | 0711000010 | baraka.rejected@nyumbaswift.local | Rejected verification scenario for profile UX |
 
 ## Seeded agents
 
@@ -54,6 +56,12 @@ testpass123
 | --- | --- | --- | --- | --- |
 | 2BR Furnished Apartment in Mikocheni | Rehema Renter | active | current month | completed |
 | 3BR Family House in Temeke | Juma Renter | active | current month | pending |
+
+## Verification scenario quick checks
+
+- **Admin review**: log in as `Amina Admin` and review `Asha Pending` from the dashboard verification area.
+- **Verified renter state**: log in as `Rehema Renter` to confirm the completed verification profile state.
+- **Rejected state**: log in as `Baraka Rejected` to confirm the rejected verification path and resubmission UX.
 
 ## Notes
 

@@ -25,6 +25,8 @@ class UserResponse(BaseModel):
     full_name: str
     role: UserRole
     verification_status: VerificationStatus
+    national_id: str | None
+    profile_photo_url: str | None
     is_active: bool
     created_at: datetime
 
@@ -46,3 +48,8 @@ class TokenResponse(BaseModel):
 
 class VerificationRequest(BaseModel):
     national_id: str
+    profile_photo_url: str | None = None
+
+
+class UserVerificationReview(BaseModel):
+    verification_status: VerificationStatus

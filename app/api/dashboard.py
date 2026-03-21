@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_current_user, require_landlord
+from app.api.deps import get_current_user, require_admin, require_landlord
 from app.core.database import get_db
 from app.models.property import ListingStatus, Property
 from app.models.rental import PaymentStatus, RentPayment, Rental, RentalStatus
@@ -115,7 +115,7 @@ def landlord_properties(
 
 @router.get("/admin/platform-stats")
 def platform_stats(
-    current_user: User = Depends(require_landlord),
+    current_user: User = Depends(require_admin),
     db: Session = Depends(get_db),
 ):
     """Platform-wide stats for admin/overview."""

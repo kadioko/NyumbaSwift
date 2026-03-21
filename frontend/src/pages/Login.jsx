@@ -1,22 +1,34 @@
-import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
+import { useState, useEffect } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { useAuth } from '../context/useAuth'
 import { Home, Phone, Lock, AlertCircle } from 'lucide-react'
 
 export default function Login() {
-  const { login } = useAuth()
+  const { login, authNotice, clearAuthNotice } = useAuth()
+  const location = useLocation()
   const navigate = useNavigate()
   const [form, setForm] = useState({ phone: '', password: '' })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
+  const getDefaultRoute = (user) => (user?.role === 'landlord' || user?.role === 'admin' ? '/dashboard' : '/properties')
+
+  useEffect(() => {
+    return () => clearAuthNotice()
+  }, [clearAuthNotice])
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
+    clearAuthNotice()
     setLoading(true)
     try {
-      await login(form)
-      navigate('/properties')
+      const data = await login(form)
+      const requestedPath = location.state?.from?.pathname
+      const nextPath = requestedPath && requestedPath !== '/login' && requestedPath !== '/register'
+        ? requestedPath
+        : getDefaultRoute(data.user)
+      navigate(nextPath, { replace: true })
     } catch (err) {
       setError(err.message)
     } finally {
@@ -38,6 +50,12 @@ export default function Login() {
         </div>
 
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
+          {authNotice && (
+            <div className="flex items-center gap-2 bg-amber-50 text-amber-800 px-4 py-3 rounded-lg mb-6 text-sm">
+              <AlertCircle className="w-4 h-4 shrink-0" />
+              {authNotice}
+            </div>
+          )}
           {error && (
             <div className="flex items-center gap-2 bg-red-50 text-red-700 px-4 py-3 rounded-lg mb-6 text-sm">
               <AlertCircle className="w-4 h-4 shrink-0" />

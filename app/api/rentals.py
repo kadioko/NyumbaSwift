@@ -243,6 +243,11 @@ async def unlock_listing(
     db: Session = Depends(get_db),
 ):
     """Initiate payment to unlock landlord contact details."""
+    if not current_user.email:
+        raise HTTPException(
+            status_code=400,
+            detail="Please add your email in Profile before unlocking contact details",
+        )
     prop = db.query(Property).filter(Property.id == data.property_id).first()
     if not prop:
         raise HTTPException(status_code=404, detail="Property not found")

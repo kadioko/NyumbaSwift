@@ -4,17 +4,43 @@ function getToken() {
   return localStorage.getItem('nyumbaswift_token')
 }
 
+function createApiError(message, status, data = null) {
+  const error = new Error(message)
+  error.status = status
+  error.data = data
+  return error
+}
+
+function notifyAuthExpired(message) {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('nyumbaswift:auth-expired', {
+      detail: { message },
+    }))
+  }
+}
+
 async function request(path, options = {}) {
   const token = getToken()
   const headers = { 'Content-Type': 'application/json', ...options.headers }
   if (token) headers['Authorization'] = `Bearer ${token}`
 
-  const res = await fetch(`${API_BASE}${path}`, { ...options, headers })
+  let res
+  try {
+    res = await fetch(`${API_BASE}${path}`, { ...options, headers })
+  } catch {
+    throw createApiError('Network error. Please check your connection and try again.', 0)
+  }
+
   const data = await res.json().catch(() => null)
 
   if (!res.ok) {
     const msg = data?.detail || `Request failed (${res.status})`
-    throw new Error(msg)
+    if (res.status === 401 && token) {
+      notifyAuthExpired(msg === 'Invalid token' || msg === 'User not found or inactive'
+        ? 'Your session expired. Please sign in again.'
+        : msg)
+    }
+    throw createApiError(msg, res.status, data)
   }
   return data
 }
@@ -26,6 +52,8 @@ export const auth = {
   me: () => request('/auth/me'),
   updateMe: (body) => request('/auth/me', { method: 'PATCH', body: JSON.stringify(body) }),
   verify: (body) => request('/auth/verify', { method: 'POST', body: JSON.stringify(body) }),
+  pendingVerifications: () => request('/auth/verifications/pending'),
+  reviewVerification: (id, body) => request(`/auth/verifications/${id}/review`, { method: 'POST', body: JSON.stringify(body) }),
 }
 
 // Properties
@@ -49,7 +77,7 @@ export const rentals = {
   my: () => request('/rentals/my'),
   end: (id) => request(`/rentals/${id}/end`, { method: 'POST' }),
   pay: (body) => request('/rentals/payments', { method: 'POST', body: JSON.stringify(body) }),
-  confirmPayment: (id, ref) => request(`/rentals/payments/${id}/confirm?mpesa_reference=${ref}`, { method: 'POST' }),
+  confirmPayment: (id, ref) => request(`/rentals/payments/${id}/confirm?mpesa_reference=${encodeURIComponent(ref)}`, { method: 'POST' }),
   paymentHistory: () => request('/rentals/payments/history'),
   unlock: (body) => request('/rentals/unlock', { method: 'POST', body: JSON.stringify(body) }),
   unlockStatus: (propertyId) => request(`/rentals/unlock/${propertyId}`),
