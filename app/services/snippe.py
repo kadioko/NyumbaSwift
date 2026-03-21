@@ -35,13 +35,18 @@ async def create_mobile_payment(*, amount: int, phone: str, full_name: str, emai
         raise SnippeError('Snippe API key is not configured')
 
     first_name, last_name = _split_name(full_name)
+    normalized_phone = _normalize_phone(phone)
     payload = {
         'payment_type': 'mobile',
-        'amount': {'value': amount, 'currency': 'TZS'},
+        'phone_number': normalized_phone,
+        'details': {
+            'amount': amount,
+            'currency': 'TZS',
+        },
         'customer': {
-            'phone': _normalize_phone(phone),
-            'first_name': first_name,
-            'last_name': last_name,
+            'phone_number': normalized_phone,
+            'firstname': first_name,
+            'lastname': last_name,
             'email': email,
         },
         'reference': reference,
