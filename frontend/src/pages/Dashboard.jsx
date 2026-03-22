@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Link } from 'react-router-dom'
-import { Building, Users, CreditCard, TrendingUp, Plus, Loader2, ChevronRight, ShieldCheck, Mail, Phone } from 'lucide-react'
+import { Building, Users, CreditCard, TrendingUp, Plus, Loader2, ChevronRight, ShieldCheck, Mail, Phone, AlertCircle, CheckCircle } from 'lucide-react'
 import { auth as authApi, dashboard as dashApi } from '../services/api'
 import { useAuth } from '../context/useAuth'
 
@@ -11,37 +11,51 @@ export default function Dashboard() {
   const [properties, setProperties] = useState([])
   const [pendingVerifications, setPendingVerifications] = useState([])
   const [loading, setLoading] = useState(true)
-  const [tab, setTab] = useState(isAdmin ? 'overview' : 'overview')
+  const [tab, setTab] = useState('overview')
   const [reviewingId, setReviewingId] = useState(null)
+  const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
 
-  useEffect(() => {
+  const loadDashboard = useCallback(async () => {
     if (!user) return
 
-    const requests = isAdmin
-      ? Promise.all([dashApi.platformStats(), authApi.pendingVerifications()])
-      : Promise.all([dashApi.landlordSummary(), dashApi.landlordProperties()])
-
-    requests
-      .then((data) => {
-        if (isAdmin) {
-          const [stats, pending] = data
-          setSummary(stats)
-          setPendingVerifications(pending)
-        } else {
-          const [stats, landlordProperties] = data
-          setSummary(stats)
-          setProperties(landlordProperties)
-        }
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false))
+    setLoading(true)
+    setError('')
+    try {
+      if (isAdmin) {
+        const [stats, pending] = await Promise.all([dashApi.platformStats(), authApi.pendingVerifications()])
+        setSummary(stats)
+        setPendingVerifications(pending)
+        setProperties([])
+      } else {
+        const [stats, landlordProperties] = await Promise.all([dashApi.landlordSummary(), dashApi.landlordProperties()])
+        setSummary(stats)
+        setProperties(landlordProperties)
+        setPendingVerifications([])
+      }
+    } catch (err) {
+      setSummary(null)
+      setProperties([])
+      setPendingVerifications([])
+      setError(err.message || 'Unable to load dashboard right now.')
+    } finally {
+      setLoading(false)
+    }
   }, [isAdmin, user])
+
+  useEffect(() => {
+    loadDashboard()
+  }, [loadDashboard])
 
   const handleReviewVerification = async (userId, verification_status) => {
     setReviewingId(userId)
+    setError('')
     try {
       const updated = await authApi.reviewVerification(userId, { verification_status })
       setPendingVerifications((current) => current.filter((item) => item.id !== updated.id))
+      setSuccess(`User ${verification_status === 'verified' ? 'verified' : 'rejected'} successfully.`)
+    } catch (err) {
+      setError(err.message || 'Unable to review this verification right now.')
     } finally {
       setReviewingId(null)
     }
@@ -102,20 +116,53 @@ export default function Dashboard() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {error && (
+          <div className="flex items-center justify-between gap-3 bg-red-50 text-red-700 px-4 py-3 rounded-lg mb-6 text-sm border border-red-100">
+            <div className="flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 shrink-0" />
+              <span>{error}</span>
+            </div>
+            <button type="button" onClick={loadDashboard} className="font-medium text-red-700 hover:text-red-800">
+              Retry
+            </button>
+          </div>
+        )}
+
+        {success && (
+          <div className="flex items-center gap-2 bg-emerald-50 text-emerald-700 px-4 py-3 rounded-lg mb-6 text-sm border border-emerald-100">
+            <CheckCircle className="w-4 h-4 shrink-0" />
+            <span>{success}</span>
+          </div>
+        )}
+
+        {!summary ? (
+          <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
+            <Building className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+            <h3 className="font-semibold text-gray-700 mb-1">Dashboard data is unavailable</h3>
+            <p className="text-gray-500 mb-4">We couldn&apos;t load your latest dashboard information.</p>
+            <button type="button" onClick={loadDashboard} className="inline-flex items-center gap-2 bg-emerald-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-emerald-700">
+              <Loader2 className="w-4 h-4" /> Try Again
+            </button>
+          </div>
+        ) : (
+          <>
         {tab === 'overview' && (
           <div className="space-y-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {stats.map(({ label, value, icon: Icon, color }) => (
-                <div key={label} className="bg-white rounded-xl border border-gray-200 p-5">
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-sm text-gray-500">{label}</span>
-                    <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${color}`}>
-                      <Icon className="w-4 h-4" />
+              {stats.map(({ label, value, icon, color }) => {
+                const Icon = icon
+                return (
+                  <div key={label} className="bg-white rounded-xl border border-gray-200 p-5">
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-sm text-gray-500">{label}</span>
+                      <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${color}`}>
+                        <Icon className="w-4 h-4" />
+                      </div>
                     </div>
+                    <div className="text-2xl font-bold text-gray-900">{value}</div>
                   </div>
-                  <div className="text-2xl font-bold text-gray-900">{value}</div>
-                </div>
-              ))}
+                )
+              })}
             </div>
 
             <div className="bg-white rounded-xl border border-gray-200 p-6">
@@ -253,6 +300,8 @@ export default function Dashboard() {
               ))
             )}
           </div>
+        )}
+          </>
         )}
       </div>
     </div>

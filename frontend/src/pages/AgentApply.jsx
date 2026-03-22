@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
+import { Link } from 'react-router-dom'
+import { useAuth } from '../context/useAuth'
 import { agents as agentApi } from '../services/api'
 import { Shield, AlertCircle, CheckCircle, ArrowLeft } from 'lucide-react'
 
@@ -8,7 +8,6 @@ const DISTRICTS = ['Kinondoni', 'Ilala', 'Temeke', 'Ubungo', 'Kigamboni']
 
 export default function AgentApply() {
   const { user } = useAuth()
-  const navigate = useNavigate()
   const [form, setForm] = useState({
     business_name: '', license_number: '', bio: '', operating_districts: '',
   })

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { CreditCard, Calendar, Home, Loader2, AlertCircle, CheckCircle } from 'lucide-react'
 import { rentals as rentalApi } from '../services/api'
 
@@ -12,26 +12,42 @@ export default function MyRentals() {
   const [confirmRef, setConfirmRef] = useState('')
   const [confirming, setConfirming] = useState(false)
   const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
   const [tab, setTab] = useState('rentals')
 
-  useEffect(() => {
-    Promise.all([rentalApi.my(), rentalApi.paymentHistory()])
-      .then(([r, p]) => { setMyRentals(r); setPayments(p) })
-      .catch(() => {})
-      .finally(() => setLoading(false))
+  const loadRentalData = useCallback(async () => {
+    setLoading(true)
+    setError('')
+    try {
+      const [r, p] = await Promise.all([rentalApi.my(), rentalApi.paymentHistory()])
+      setMyRentals(r)
+      setPayments(p)
+    } catch (err) {
+      setMyRentals([])
+      setPayments([])
+      setError(err.message || 'Unable to load your rental information right now.')
+    } finally {
+      setLoading(false)
+    }
   }, [])
+
+  useEffect(() => {
+    loadRentalData()
+  }, [loadRentalData])
 
   const handlePay = async (e) => {
     e.preventDefault()
     setPaying(true)
     setError('')
+    setSuccess('')
     setPayResult(null)
     try {
       const data = await rentalApi.pay({
         rental_id: Number(payForm.rental_id),
-        payment_month: payForm.payment_month,
+        payment_month: payForm.payment_month || currentMonth,
       })
       setPayResult(data)
+      setSuccess('Payment request created. Complete the payment and then confirm the M-Pesa reference below.')
     } catch (err) {
       setError(err.message)
     } finally {
@@ -43,14 +59,14 @@ export default function MyRentals() {
     if (!payResult || !confirmRef) return
     setConfirming(true)
     setError('')
+    setSuccess('')
     try {
       await rentalApi.confirmPayment(payResult.id, confirmRef)
       setPayResult(null)
       setConfirmRef('')
       setPayForm({ rental_id: '', payment_month: '' })
-      // Refresh
-      const p = await rentalApi.paymentHistory()
-      setPayments(p)
+      await loadRentalData()
+      setSuccess('Payment confirmed successfully and your history has been updated.')
     } catch (err) {
       setError(err.message)
     } finally {
@@ -92,9 +108,21 @@ export default function MyRentals() {
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {error && (
-          <div className="flex items-center gap-2 bg-red-50 text-red-700 px-4 py-3 rounded-lg mb-6 text-sm">
-            <AlertCircle className="w-4 h-4 shrink-0" />
-            {error}
+          <div className="flex items-center justify-between gap-3 bg-red-50 text-red-700 px-4 py-3 rounded-lg mb-6 text-sm border border-red-100">
+            <div className="flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 shrink-0" />
+              <span>{error}</span>
+            </div>
+            <button type="button" onClick={loadRentalData} className="font-medium text-red-700 hover:text-red-800">
+              Retry
+            </button>
+          </div>
+        )}
+
+        {success && (
+          <div className="flex items-center gap-2 bg-emerald-50 text-emerald-700 px-4 py-3 rounded-lg mb-6 text-sm border border-emerald-100">
+            <CheckCircle className="w-4 h-4 shrink-0" />
+            <span>{success}</span>
           </div>
         )}
 
@@ -133,7 +161,13 @@ export default function MyRentals() {
 
         {tab === 'pay rent' && (
           <div className="max-w-md mx-auto">
-            {payResult ? (
+            {!payResult && myRentals.filter((r) => r.status === 'active').length === 0 ? (
+              <div className="bg-white rounded-xl border border-gray-200 p-10 text-center">
+                <CreditCard className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                <h3 className="font-semibold text-gray-700 mb-1">No active rentals available for payment</h3>
+                <p className="text-gray-500">Once you have an active rental, you&apos;ll be able to initiate rent payments here.</p>
+              </div>
+            ) : payResult ? (
               <div className="bg-white rounded-xl border border-gray-200 p-6">
                 <div className="text-center mb-6">
                   <CreditCard className="w-10 h-10 text-emerald-600 mx-auto mb-2" />
@@ -150,7 +184,7 @@ export default function MyRentals() {
                     type="text"
                     placeholder="M-Pesa Reference (e.g. MPESA123ABC)"
                     value={confirmRef}
-                    onChange={(e) => setConfirmRef(e.target.value)}
+                    onChange={(e) => setConfirmRef(e.target.value.toUpperCase())}
                     className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
                   />
                   <button
@@ -194,7 +228,7 @@ export default function MyRentals() {
                 </div>
                 <button
                   type="submit"
-                  disabled={paying}
+                  disabled={paying || myRentals.filter((r) => r.status === 'active').length === 0}
                   className="w-full bg-emerald-600 text-white py-2.5 rounded-lg font-semibold hover:bg-emerald-700 disabled:opacity-50"
                 >
                   {paying ? 'Processing...' : 'Initiate Payment'}

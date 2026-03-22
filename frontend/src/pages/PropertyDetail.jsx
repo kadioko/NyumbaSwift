@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { MapPin, Bed, Bath, Maximize2, Shield, Star, Zap, Droplets, Bolt, Car, Lock, Phone, Loader2, ArrowLeft, AlertCircle } from 'lucide-react'
 import { properties as propApi, rentals } from '../services/api'
-import { useAuth } from '../context/AuthContext'
+import { useAuth } from '../context/useAuth'
 
 export default function PropertyDetail() {
   const { id } = useParams()
@@ -13,6 +13,7 @@ export default function PropertyDetail() {
   const [unlockStatus, setUnlockStatus] = useState(null)
   const [unlocking, setUnlocking] = useState(false)
   const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
 
   useEffect(() => {
     propApi.get(id)
@@ -28,9 +29,11 @@ export default function PropertyDetail() {
   const handleUnlock = async () => {
     setUnlocking(true)
     setError('')
+    setSuccess('')
     try {
       const data = await rentals.unlock({ property_id: Number(id) })
       setUnlockStatus(data)
+      setSuccess(data?.message || 'Unlock request started. Complete the payment prompt on your phone.')
     } catch (err) {
       setError(err.message)
     } finally {
@@ -59,6 +62,9 @@ export default function PropertyDetail() {
         try {
           const data = await rentals.unlockStatus(Number(id))
           setUnlockStatus(data)
+          if (data?.payment_status === 'completed') {
+            setSuccess(data?.message || 'Contact unlocked successfully.')
+          }
         } catch (err) {
           setError(err.message)
         }
@@ -228,6 +234,12 @@ export default function PropertyDetail() {
                 </div>
               )}
 
+              {success && !error && (
+                <div className="px-3 py-2 rounded-lg mb-4 text-sm bg-emerald-50 text-emerald-700">
+                  {success}
+                </div>
+              )}
+
               {unlockStatus?.message && !error && (
                 <div className={`px-3 py-2 rounded-lg mb-4 text-sm ${isPendingUnlock ? 'bg-amber-50 text-amber-800' : 'bg-emerald-50 text-emerald-700'}`}>
                   {unlockStatus.message}
@@ -274,6 +286,7 @@ export default function PropertyDetail() {
               ) : (
                 <Link
                   to="/login"
+                  state={{ from: { pathname: `/properties/${id}` } }}
                   className="w-full bg-emerald-600 text-white py-3 rounded-xl font-semibold hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2"
                 >
                   Sign In to Contact Owner

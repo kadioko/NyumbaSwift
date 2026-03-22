@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { useAuth } from '../context/AuthContext'
+import { useState, useEffect } from 'react'
+import { useAuth } from '../context/useAuth'
 import { auth as authApi } from '../services/api'
 import { Phone, Mail, Shield, AlertCircle, CheckCircle, Loader2, Image as ImageIcon } from 'lucide-react'
 
@@ -13,6 +13,18 @@ export default function Profile() {
   const [verifying, setVerifying] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+
+  useEffect(() => {
+    setForm({ full_name: user?.full_name || '', email: user?.email || '' })
+    setNationalId(user?.national_id || '')
+    setIdImage(user?.profile_photo_url || '')
+  }, [user])
+
+  useEffect(() => {
+    if (!success) return undefined
+    const timeoutId = window.setTimeout(() => setSuccess(''), 3000)
+    return () => window.clearTimeout(timeoutId)
+  }, [success])
 
   const handleIdImageChange = (e) => {
     const file = e.target.files?.[0]
@@ -33,7 +45,6 @@ export default function Profile() {
       setUser(updated)
       setEditing(false)
       setSuccess('Profile updated')
-      setTimeout(() => setSuccess(''), 3000)
     } catch (err) {
       setError(err.message)
     } finally {
@@ -49,7 +60,6 @@ export default function Profile() {
       const updated = await authApi.verify({ national_id: nationalId, profile_photo_url: idImage })
       setUser(updated)
       setSuccess('Verification submitted')
-      setTimeout(() => setSuccess(''), 3000)
     } catch (err) {
       setError(err.message)
     } finally {

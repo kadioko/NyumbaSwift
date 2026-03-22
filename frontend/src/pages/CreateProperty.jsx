@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { properties as propApi } from '../services/api'
-import { useAuth } from '../context/AuthContext'
+import { useAuth } from '../context/useAuth'
 import { ArrowLeft, Building, AlertCircle, CheckCircle } from 'lucide-react'
 
 const DISTRICTS = ['Kinondoni', 'Ilala', 'Temeke', 'Ubungo', 'Kigamboni']
