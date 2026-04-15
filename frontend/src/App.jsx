@@ -9,6 +9,7 @@ import Register from './pages/Register'
 import Properties from './pages/Properties'
 import PropertyDetail from './pages/PropertyDetail'
 import CreateProperty from './pages/CreateProperty'
+import EditProperty from './pages/EditProperty'
 import Dashboard from './pages/Dashboard'
 import MyRentals from './pages/MyRentals'
 import Agents from './pages/Agents'
@@ -80,6 +81,7 @@ export default function App() {
           <Route element={<RouteGate requireAuth allowedRoles={['landlord', 'admin']} />}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/properties/new" element={<CreateProperty />} />
+            <Route path="/properties/:id/edit" element={<EditProperty />} />
           </Route>
         </Routes>
       </main>

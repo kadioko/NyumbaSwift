@@ -20,6 +20,7 @@ vi.mock('./pages/Register', () => ({ default: () => <div>Register Page</div> }))
 vi.mock('./pages/Properties', () => ({ default: () => <div>Properties Page</div> }))
 vi.mock('./pages/PropertyDetail', () => ({ default: () => <div>Property Detail Page</div> }))
 vi.mock('./pages/CreateProperty', () => ({ default: () => <div>Create Property Page</div> }))
+vi.mock('./pages/EditProperty', () => ({ default: () => <div>Edit Property Page</div> }))
 vi.mock('./pages/Dashboard', () => ({ default: () => <div>Dashboard Page</div> }))
 vi.mock('./pages/MyRentals', () => ({ default: () => <div>My Rentals Page</div> }))
 vi.mock('./pages/Agents', () => ({ default: () => <div>Agents Page</div> }))
@@ -60,6 +61,14 @@ describe('App route guards', () => {
 
     await waitFor(() => {
       expect(screen.getByText('Properties Page')).toBeInTheDocument()
+    })
+  })
+
+  it('allows authenticated landlords to access the edit property route', async () => {
+    renderApp({ user: { role: 'landlord', full_name: 'Landlord User' }, loading: false }, ['/properties/17/edit'])
+
+    await waitFor(() => {
+      expect(screen.getByText('Edit Property Page')).toBeInTheDocument()
     })
   })
 

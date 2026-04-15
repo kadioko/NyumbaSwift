@@ -231,9 +231,14 @@ export default function Dashboard() {
                         </div>
                       )}
                     </div>
-                    <Link to={`/properties/${p.property_id}`} className="text-gray-400 hover:text-emerald-600">
-                      <ChevronRight className="w-5 h-5" />
-                    </Link>
+                    <div className="flex items-center gap-3 ml-4">
+                      <Link to={`/properties/${p.property_id}/edit`} className="text-sm font-medium text-emerald-600 hover:text-emerald-700">
+                        Edit
+                      </Link>
+                      <Link to={`/properties/${p.property_id}`} className="text-gray-400 hover:text-emerald-600">
+                        <ChevronRight className="w-5 h-5" />
+                      </Link>
+                    </div>
                   </div>
                 </div>
               ))
