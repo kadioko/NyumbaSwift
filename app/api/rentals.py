@@ -88,6 +88,28 @@ def _unlock_state(unlock: ListingUnlock) -> str:
     return "completed"
 
 
+def _build_unlock_response(
+    unlock: ListingUnlock,
+    owner: User | None,
+    *,
+    message: str | None = None,
+    already_unlocked: bool = False,
+) -> ListingUnlockResponse:
+    return ListingUnlockResponse(
+        id=unlock.id,
+        renter_id=unlock.renter_id,
+        property_id=unlock.property_id,
+        amount_paid=unlock.amount_paid,
+        owner_phone=owner.phone if owner else None,
+        owner_name=owner.full_name if owner else None,
+        payment_status=_unlock_state(unlock),
+        payment_reference=unlock.mpesa_reference,
+        message=message,
+        already_unlocked=already_unlocked,
+        created_at=unlock.created_at,
+    )
+
+
 # --- Rental Management ---
 
 

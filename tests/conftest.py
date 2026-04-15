@@ -4,6 +4,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
+from app.core.rate_limit import _attempts
 from app.core.database import Base, get_db
 from app.main import app
 
@@ -15,6 +16,13 @@ engine = create_engine(
     poolclass=StaticPool,
 )
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+
+@pytest.fixture(autouse=True)
+def reset_rate_limits():
+    _attempts.clear()
+    yield
+    _attempts.clear()
 
 
 @pytest.fixture

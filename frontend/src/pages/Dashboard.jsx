@@ -12,7 +12,7 @@ export default function Dashboard() {
   const [pendingVerifications, setPendingVerifications] = useState([])
   const [loading, setLoading] = useState(true)
   const [tab, setTab] = useState('overview')
-  const [reviewingId, setReviewingId] = useState(null)
+  const [reviewingState, setReviewingState] = useState({ userId: null, action: '' })
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
 
@@ -47,17 +47,24 @@ export default function Dashboard() {
     loadDashboard()
   }, [loadDashboard])
 
+  useEffect(() => {
+    if (!success) return undefined
+    const timeoutId = window.setTimeout(() => setSuccess(''), 3000)
+    return () => window.clearTimeout(timeoutId)
+  }, [success])
+
   const handleReviewVerification = async (userId, verification_status) => {
-    setReviewingId(userId)
+    setReviewingState({ userId, action: verification_status })
     setError('')
+    setSuccess('')
     try {
       const updated = await authApi.reviewVerification(userId, { verification_status })
       setPendingVerifications((current) => current.filter((item) => item.id !== updated.id))
-      setSuccess(`User ${verification_status === 'verified' ? 'verified' : 'rejected'} successfully.`)
+      setSuccess(`${updated.full_name} was ${verification_status === 'verified' ? 'verified' : 'rejected'} successfully.`)
     } catch (err) {
-      setError(err.message || 'Unable to review this verification right now.')
+      setError(err.message || `Unable to ${verification_status === 'verified' ? 'verify' : 'reject'} this user right now.`)
     } finally {
-      setReviewingId(null)
+      setReviewingState({ userId: null, action: '' })
     }
   }
 
@@ -267,22 +274,25 @@ export default function Dashboard() {
                       <div className="text-sm text-gray-600">
                         National ID: <span className="font-medium text-gray-800">{pendingUser.national_id || 'Not provided'}</span>
                       </div>
+                      <div className="inline-flex items-center rounded-full bg-amber-50 text-amber-700 text-xs font-medium px-3 py-1 border border-amber-100">
+                        Awaiting admin review
+                      </div>
                       <div className="flex gap-3 pt-2">
                         <button
                           type="button"
-                          disabled={reviewingId === pendingUser.id}
+                          disabled={reviewingState.userId === pendingUser.id}
                           onClick={() => handleReviewVerification(pendingUser.id, 'verified')}
                           className="px-4 py-2 rounded-lg bg-emerald-600 text-white font-medium hover:bg-emerald-700 disabled:opacity-50"
                         >
-                          {reviewingId === pendingUser.id ? 'Saving...' : 'Verify User'}
+                          {reviewingState.userId === pendingUser.id && reviewingState.action === 'verified' ? 'Verifying...' : 'Verify User'}
                         </button>
                         <button
                           type="button"
-                          disabled={reviewingId === pendingUser.id}
+                          disabled={reviewingState.userId === pendingUser.id}
                           onClick={() => handleReviewVerification(pendingUser.id, 'rejected')}
                           className="px-4 py-2 rounded-lg border border-red-200 text-red-600 font-medium hover:bg-red-50 disabled:opacity-50"
                         >
-                          Reject
+                          {reviewingState.userId === pendingUser.id && reviewingState.action === 'rejected' ? 'Rejecting...' : 'Reject'}
                         </button>
                       </div>
                     </div>
