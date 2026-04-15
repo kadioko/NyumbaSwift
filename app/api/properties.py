@@ -17,6 +17,16 @@ from app.schemas.property import (
 
 router = APIRouter(prefix="/properties", tags=["Properties"])
 
+EDITABLE_PROPERTY_FIELDS = {
+    "title",
+    "description",
+    "rent_amount",
+    "bedrooms",
+    "bathrooms",
+    "furnished",
+}
+STATUS_FIELDS_ALLOWED_FOR_OWNER = {ListingStatus.ACTIVE, ListingStatus.INACTIVE}
+
 
 @router.post("/", response_model=PropertyResponse, status_code=201)
 def create_property(
@@ -95,8 +105,25 @@ def update_property(
     ).first()
     if not prop:
         raise HTTPException(status_code=404, detail="Property not found or not owned by you")
-    for field, value in data.model_dump(exclude_unset=True).items():
+
+    updates = data.model_dump(exclude_unset=True)
+    requested_status = updates.pop("status", None)
+
+    if requested_status is not None:
+        if requested_status not in STATUS_FIELDS_ALLOWED_FOR_OWNER:
+            raise HTTPException(status_code=400, detail="You can only switch a listing between active and inactive")
+        if requested_status == ListingStatus.ACTIVE and not prop.is_verified:
+            raise HTTPException(status_code=400, detail="Only verified listings can be activated")
+        prop.status = requested_status
+
+    for field, value in updates.items():
         setattr(prop, field, value)
+
+    if updates and any(field in EDITABLE_PROPERTY_FIELDS for field in updates):
+        prop.is_verified = False
+        prop.verified_at = None
+        prop.status = ListingStatus.PENDING_VERIFICATION
+
     db.commit()
     db.refresh(prop)
     return prop
@@ -112,6 +139,8 @@ def verify_property(
     prop = db.query(Property).filter(Property.id == property_id).first()
     if not prop:
         raise HTTPException(status_code=404, detail="Property not found")
+    if prop.status == ListingStatus.RENTED:
+        raise HTTPException(status_code=400, detail="Rented properties cannot be verified")
     prop.is_verified = True
     prop.verified_at = datetime.now(timezone.utc)
     prop.status = ListingStatus.ACTIVE
@@ -132,6 +161,8 @@ def boost_property(
     ).first()
     if not prop:
         raise HTTPException(status_code=404, detail="Property not found or not owned by you")
+    if not prop.is_verified or prop.status != ListingStatus.ACTIVE:
+        raise HTTPException(status_code=400, detail="Only active verified listings can be boosted")
     prop.is_premium = True
     prop.premium_expires_at = datetime.now(timezone.utc) + timedelta(days=30)
     db.commit()

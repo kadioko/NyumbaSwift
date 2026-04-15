@@ -17,7 +17,12 @@ SAMPLE_PROPERTY = {
 
 
 def create_landlord(client, phone="0712000001"):
-    resp = register_user(client, phone=phone, name="Landlord", role="landlord")
+    resp = register_user(client, phone=phone, name="Landlord", role="landlord", email=f"{phone}@example.com")
+    return resp.json()["access_token"]
+
+
+def create_admin(client, phone="0712000099"):
+    resp = register_user(client, phone=phone, name="Admin", role="admin", email=f"{phone}@example.com")
     return resp.json()["access_token"]
 
 
@@ -61,13 +66,7 @@ def test_search_properties_by_district(client):
     )
     prop_id = create_resp.json()["id"]
 
-    # Register an admin to verify
-    admin_resp = register_user(client, phone="0712000099", name="Admin", role="admin")
-    admin_token = admin_resp.json()["access_token"]
-
-    # Need to set role to admin in DB (register defaults come through API)
-    # For test, we'll use the admin endpoint which checks role
-    # Since our register allows setting role, the admin token should work
+    admin_token = create_admin(client)
     client.post(
         f"/api/v1/properties/{prop_id}/verify",
         headers=auth_header(admin_token),
@@ -88,6 +87,13 @@ def test_update_property(client):
     )
     prop_id = create_resp.json()["id"]
 
+    admin_token = create_admin(client, phone="0712000100")
+    verify_resp = client.post(
+        f"/api/v1/properties/{prop_id}/verify",
+        headers=auth_header(admin_token),
+    )
+    assert verify_resp.status_code == 200
+
     resp = client.patch(
         f"/api/v1/properties/{prop_id}",
         headers=auth_header(token),
@@ -95,6 +101,25 @@ def test_update_property(client):
     )
     assert resp.status_code == 200
     assert resp.json()["rent_amount"] == 600000
+    assert resp.json()["status"] == "pending_verification"
+    assert resp.json()["is_verified"] is False
+
+
+def test_cannot_activate_unverified_property(client):
+    token = create_landlord(client, phone="0712000008")
+    create_resp = client.post(
+        "/api/v1/properties/",
+        headers=auth_header(token),
+        json=SAMPLE_PROPERTY,
+    )
+    prop_id = create_resp.json()["id"]
+
+    resp = client.patch(
+        f"/api/v1/properties/{prop_id}",
+        headers=auth_header(token),
+        json={"status": "active"},
+    )
+    assert resp.status_code == 400
 
 
 def test_boost_property(client):
@@ -106,9 +131,32 @@ def test_boost_property(client):
     )
     prop_id = create_resp.json()["id"]
 
+    admin_token = create_admin(client, phone="0712000101")
+    verify_resp = client.post(
+        f"/api/v1/properties/{prop_id}/verify",
+        headers=auth_header(admin_token),
+    )
+    assert verify_resp.status_code == 200
+
     resp = client.post(
         f"/api/v1/properties/{prop_id}/boost",
         headers=auth_header(token),
     )
     assert resp.status_code == 200
     assert resp.json()["is_premium"] is True
+
+
+def test_cannot_boost_unverified_property(client):
+    token = create_landlord(client, phone="0712000010")
+    create_resp = client.post(
+        "/api/v1/properties/",
+        headers=auth_header(token),
+        json=SAMPLE_PROPERTY,
+    )
+    prop_id = create_resp.json()["id"]
+
+    resp = client.post(
+        f"/api/v1/properties/{prop_id}/boost",
+        headers=auth_header(token),
+    )
+    assert resp.status_code == 400

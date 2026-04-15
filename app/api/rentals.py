@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from app.api.deps import get_current_user, require_landlord
 from app.core.config import settings
 from app.core.database import get_db
+from app.core.rate_limit import enforce_rate_limit
 from app.models.property import Property
 from app.models.rental import (
     ListingUnlock,
@@ -24,9 +25,57 @@ from app.schemas.rental import (
     RentPaymentCreate,
     RentPaymentResponse,
 )
-from app.services.snippe import SnippeError, create_mobile_payment, verify_webhook_signature
+from app.services.snippe import SnippeError, create_mobile_payment, get_payment_status, verify_webhook_signature
 
 router = APIRouter(prefix="/rentals", tags=["Rentals & Payments"])
+
+
+def _normalize_provider_status(value: str | None) -> str:
+    return (value or "").strip().lower().replace("-", "_")
+
+
+def _provider_payment_status(data: dict | None) -> str:
+    if not isinstance(data, dict):
+        return ""
+    return _normalize_provider_status(
+        data.get("payment_status") or data.get("status") or data.get("state") or data.get("payment_state")
+    )
+
+
+def _provider_payment_reference(data: dict | None) -> str | None:
+    if not isinstance(data, dict):
+        return None
+    for key in ("external_reference", "transaction_reference", "mpesa_reference", "reference", "id"):
+        value = data.get(key)
+        if value:
+            return str(value)
+    return None
+
+
+def _payment_access_allowed(payment: RentPayment, current_user: User) -> bool:
+    if current_user.role == "admin":
+        return True
+    return payment.rental.tenant_id == current_user.id or payment.rental.landlord_id == current_user.id
+
+
+def _update_payment_from_provider(payment: RentPayment, provider_data: dict | None, *, fallback_reference: str | None = None):
+    provider_status = _provider_payment_status(provider_data)
+    provider_reference = _provider_payment_reference(provider_data) or fallback_reference
+
+    if provider_status in {"completed", "success", "successful", "paid"}:
+        payment.status = PaymentStatus.COMPLETED
+        payment.mpesa_reference = provider_reference
+        payment.paid_at = datetime.now(timezone.utc)
+        payment.notes = None
+    elif provider_status in {"failed", "cancelled", "canceled", "declined", "expired"}:
+        payment.status = PaymentStatus.FAILED
+        payment.mpesa_reference = provider_reference
+        payment.notes = f"Provider status: {provider_status}"
+    else:
+        payment.status = PaymentStatus.PROCESSING
+        if provider_reference:
+            payment.mpesa_reference = provider_reference
+        payment.notes = f"Provider status: {provider_status or 'processing'}"
 
 
 def _unlock_state(unlock: ListingUnlock) -> str:
@@ -37,31 +86,6 @@ def _unlock_state(unlock: ListingUnlock) -> str:
     if unlock.mpesa_reference.startswith("failed:"):
         return "failed"
     return "completed"
-
-
-def _unlock_payment_reference(unlock: ListingUnlock) -> str | None:
-    if not unlock.mpesa_reference:
-        return None
-    if ":" in unlock.mpesa_reference:
-        return unlock.mpesa_reference.split(":", 1)[1]
-    return unlock.mpesa_reference
-
-
-def _build_unlock_response(unlock: ListingUnlock, owner: User, *, already_unlocked: bool = False, message: str | None = None) -> dict:
-    is_completed = _unlock_state(unlock) == "completed"
-    return {
-        "id": unlock.id,
-        "renter_id": unlock.renter_id,
-        "property_id": unlock.property_id,
-        "amount_paid": unlock.amount_paid,
-        "owner_phone": owner.phone if is_completed else None,
-        "owner_name": owner.full_name if is_completed else None,
-        "payment_status": _unlock_state(unlock),
-        "payment_reference": _unlock_payment_reference(unlock),
-        "message": message,
-        "already_unlocked": already_unlocked,
-        "created_at": unlock.created_at,
-    }
 
 
 # --- Rental Management ---
@@ -128,12 +152,14 @@ def end_rental(
 
 
 @router.post("/payments", response_model=RentPaymentResponse, status_code=201)
-def initiate_rent_payment(
+async def initiate_rent_payment(
     data: RentPaymentCreate,
+    request: Request,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """Tenant initiates monthly rent payment via M-Pesa."""
+    enforce_rate_limit(request, scope="rentals:initiate_payment", limit=5, window_seconds=300, identifier=str(current_user.id))
     rental = db.query(Rental).filter(
         Rental.id == data.rental_id, Rental.tenant_id == current_user.id
     ).first()
@@ -150,6 +176,11 @@ def initiate_rent_payment(
     ).first()
     if existing:
         raise HTTPException(status_code=400, detail="Payment already exists for this month")
+    if not current_user.email:
+        raise HTTPException(
+            status_code=400,
+            detail="Please add your email in Profile before paying rent",
+        )
 
     amount = rental.monthly_rent
     platform_fee = math.ceil(amount * settings.RENT_COLLECTION_FEE_PERCENT / 100)
@@ -166,24 +197,81 @@ def initiate_rent_payment(
     db.add(payment)
     db.commit()
     db.refresh(payment)
+
+    try:
+        provider_payment = await create_mobile_payment(
+            amount=payment.amount,
+            phone=current_user.phone,
+            full_name=current_user.full_name,
+            email=current_user.email,
+            reference=f"rent-{payment.id}",
+            metadata={
+                "payment_id": str(payment.id),
+                "rental_id": str(rental.id),
+                "tenant_id": str(current_user.id),
+                "purpose": "rent_payment",
+                "callback_url": f"{settings.PUBLIC_BASE_URL}/api/v1/rentals/webhooks/snippe",
+            },
+        )
+    except SnippeError as exc:
+        payment.status = PaymentStatus.FAILED
+        payment.notes = str(exc)
+        db.commit()
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+
+    _update_payment_from_provider(payment, provider_payment, fallback_reference=f"rent-{payment.id}")
+    db.commit()
+    db.refresh(payment)
     return payment
 
 
 @router.post("/payments/{payment_id}/confirm", response_model=RentPaymentResponse)
-def confirm_payment(
+async def confirm_payment(
     payment_id: int,
     mpesa_reference: str,
+    request: Request,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """Confirm M-Pesa payment (webhook or manual confirmation)."""
-    payment = db.query(RentPayment).filter(RentPayment.id == payment_id).first()
+    enforce_rate_limit(request, scope="rentals:confirm_payment", limit=8, window_seconds=300, identifier=str(current_user.id))
+    payment = (
+        db.query(RentPayment)
+        .join(Rental)
+        .filter(RentPayment.id == payment_id)
+        .first()
+    )
     if not payment:
         raise HTTPException(status_code=404, detail="Payment not found")
+    if not _payment_access_allowed(payment, current_user):
+        raise HTTPException(status_code=403, detail="You do not have access to this payment")
+    if payment.status == PaymentStatus.COMPLETED:
+        raise HTTPException(status_code=400, detail="Payment is already completed")
 
-    payment.status = PaymentStatus.COMPLETED
-    payment.mpesa_reference = mpesa_reference
-    payment.paid_at = datetime.now(timezone.utc)
+    normalized_reference = mpesa_reference.strip().upper()
+    if not normalized_reference:
+        raise HTTPException(status_code=400, detail="M-Pesa reference is required")
+
+    duplicate_reference = db.query(RentPayment).filter(
+        RentPayment.id != payment.id,
+        RentPayment.mpesa_reference == normalized_reference,
+        RentPayment.status == PaymentStatus.COMPLETED,
+    ).first()
+    if duplicate_reference:
+        raise HTTPException(status_code=400, detail="This M-Pesa reference is already in use")
+
+    try:
+        provider_payment = await get_payment_status(normalized_reference)
+    except SnippeError as exc:
+        raise HTTPException(
+            status_code=502,
+            detail=f"Unable to verify payment status right now: {exc}",
+        ) from exc
+
+    _update_payment_from_provider(payment, provider_payment, fallback_reference=normalized_reference)
+    if payment.status == PaymentStatus.FAILED:
+        db.commit()
+        raise HTTPException(status_code=400, detail="Payment could not be confirmed. Please try again after completing the mobile money payment.")
     db.commit()
     db.refresh(payment)
     return payment
@@ -191,11 +279,22 @@ def confirm_payment(
 
 @router.get("/payments/history", response_model=list[RentPaymentResponse])
 def payment_history(
-    rental_id: int,
+    rental_id: int | None = None,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Get payment history for a rental."""
+    """Get payment history for a rental or for the current user's rentals."""
+    if rental_id is None:
+        return (
+            db.query(RentPayment)
+            .join(Rental)
+            .filter(
+                (Rental.tenant_id == current_user.id) | (Rental.landlord_id == current_user.id)
+            )
+            .order_by(RentPayment.created_at.desc())
+            .all()
+        )
+
     rental = db.query(Rental).filter(
         Rental.id == rental_id,
         (Rental.tenant_id == current_user.id) | (Rental.landlord_id == current_user.id),
@@ -322,8 +421,33 @@ async def snippe_webhook(request: Request, db: Session = Depends(get_db)):
     data = event.get("data", {})
     metadata = data.get("metadata", {})
     unlock_id = metadata.get("unlock_id")
+    payment_id = metadata.get("payment_id")
     reference = data.get("reference")
     external_reference = data.get("external_reference")
+    event_type = event.get("type")
+
+    payment = None
+    if payment_id and str(payment_id).isdigit():
+        payment = db.query(RentPayment).filter(RentPayment.id == int(payment_id)).first()
+
+    if payment:
+        provider_reference = external_reference or reference or payment.mpesa_reference
+        if event_type == "payment.completed":
+            payment.status = PaymentStatus.COMPLETED
+            payment.mpesa_reference = provider_reference
+            payment.paid_at = datetime.now(timezone.utc)
+            payment.notes = None
+        elif event_type == "payment.failed":
+            payment.status = PaymentStatus.FAILED
+            payment.mpesa_reference = provider_reference
+            payment.notes = f"Provider status: {_provider_payment_status(data) or 'failed'}"
+        else:
+            payment.status = PaymentStatus.PROCESSING
+            if provider_reference:
+                payment.mpesa_reference = provider_reference
+            payment.notes = f"Provider status: {_provider_payment_status(data) or 'processing'}"
+        db.commit()
+        return {"received": True}
 
     unlock = None
     if unlock_id and str(unlock_id).isdigit():
@@ -335,7 +459,6 @@ async def snippe_webhook(request: Request, db: Session = Depends(get_db)):
     if not unlock:
         return {"received": True}
 
-    event_type = event.get("type")
     if event_type == "payment.completed":
         unlock.mpesa_reference = external_reference or reference
     elif event_type == "payment.failed":

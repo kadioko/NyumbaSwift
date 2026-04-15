@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 
 from app.models.rental import PaymentStatus, RentalStatus
 
@@ -30,6 +30,20 @@ class RentalResponse(BaseModel):
 class RentPaymentCreate(BaseModel):
     rental_id: int
     payment_month: str  # "2026-03"
+
+    @field_validator("payment_month")
+    @classmethod
+    def validate_payment_month(cls, value: str) -> str:
+        normalized = value.strip()
+        if len(normalized) != 7 or normalized[4] != "-":
+            raise ValueError("payment_month must be in YYYY-MM format")
+        year, month = normalized.split("-", 1)
+        if not year.isdigit() or not month.isdigit():
+            raise ValueError("payment_month must be in YYYY-MM format")
+        month_number = int(month)
+        if month_number < 1 or month_number > 12:
+            raise ValueError("payment_month must be in YYYY-MM format")
+        return normalized
 
 
 class RentPaymentResponse(BaseModel):

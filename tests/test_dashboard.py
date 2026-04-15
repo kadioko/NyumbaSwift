@@ -3,7 +3,7 @@ from tests.conftest import auth_header, register_user
 
 def test_landlord_summary_empty(client):
     token = register_user(
-        client, phone="0712300001", name="Landlord", role="landlord"
+        client, phone="0712300001", name="Landlord", role="landlord", email="landlord-summary@example.com"
     ).json()["access_token"]
 
     resp = client.get(
@@ -17,15 +17,15 @@ def test_landlord_summary_empty(client):
     assert data["total_rent_collected_tzs"] == 0
 
 
-def test_landlord_summary_with_data(client):
+def test_landlord_summary_with_data(client, mock_snippe_processing):
     # Setup landlord with property and rental
     landlord_resp = register_user(
-        client, phone="0712300002", name="Landlord2", role="landlord"
+        client, phone="0712300002", name="Landlord2", role="landlord", email="landlord2@example.com"
     )
     landlord_token = landlord_resp.json()["access_token"]
 
     tenant_resp = register_user(
-        client, phone="0712300003", name="Tenant", role="renter"
+        client, phone="0712300003", name="Tenant", role="renter", email="tenant-summary@example.com"
     )
     tenant_id = tenant_resp.json()["user"]["id"]
     tenant_token = tenant_resp.json()["access_token"]

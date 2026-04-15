@@ -93,3 +93,39 @@ def test_list_approved_agents(client):
     resp = client.get("/api/v1/agents/")
     assert resp.status_code == 200
     assert len(resp.json()) == 1
+
+
+def test_admin_reject_agent_rolls_role_back_to_renter(client):
+    broker_resp = register_user(client, phone="0712200005", name="Broker5")
+    broker_token = broker_resp.json()["access_token"]
+    apply_resp = client.post(
+        "/api/v1/agents/apply",
+        headers=auth_header(broker_token),
+        json={"operating_districts": "Kinondoni"},
+    )
+    agent_id = apply_resp.json()["id"]
+
+    admin_token = register_user(
+        client, phone="0712200097", name="Admin3", role="admin"
+    ).json()["access_token"]
+
+    approve_resp = client.post(
+        f"/api/v1/agents/{agent_id}/review",
+        headers=auth_header(admin_token),
+        json={"status": "approved"},
+    )
+    assert approve_resp.status_code == 200
+
+    me_resp = client.get("/api/v1/auth/me", headers=auth_header(broker_token))
+    assert me_resp.json()["role"] == "agent"
+
+    reject_resp = client.post(
+        f"/api/v1/agents/{agent_id}/review",
+        headers=auth_header(admin_token),
+        json={"status": "rejected"},
+    )
+    assert reject_resp.status_code == 200
+    assert reject_resp.json()["status"] == "rejected"
+
+    me_resp = client.get("/api/v1/auth/me", headers=auth_header(broker_token))
+    assert me_resp.json()["role"] == "renter"

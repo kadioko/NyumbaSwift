@@ -3,6 +3,8 @@ import { useAuth } from '../context/useAuth'
 import { auth as authApi } from '../services/api'
 import { Phone, Mail, Shield, AlertCircle, CheckCircle, Loader2, Image as ImageIcon } from 'lucide-react'
 
+const MAX_ID_IMAGE_BYTES = 5 * 1024 * 1024
+
 export default function Profile() {
   const { user, setUser } = useAuth()
   const [editing, setEditing] = useState(false)
@@ -29,6 +31,15 @@ export default function Profile() {
   const handleIdImageChange = (e) => {
     const file = e.target.files?.[0]
     if (!file) return
+    if (!file.type.startsWith('image/')) {
+      setError('Please upload an image file for your National ID.')
+      return
+    }
+    if (file.size > MAX_ID_IMAGE_BYTES) {
+      setError('National ID image must be 5MB or smaller.')
+      return
+    }
+    setError('')
     const reader = new FileReader()
     reader.onload = () => {
       setIdImage(String(reader.result || ''))

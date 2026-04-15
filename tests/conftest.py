@@ -42,13 +42,56 @@ def client(db):
     app.dependency_overrides.clear()
 
 
-def register_user(client, phone="0712345678", name="Test User", role="renter"):
+@pytest.fixture
+def mock_snippe_processing(monkeypatch):
+    async def fake_create_mobile_payment(**kwargs):
+        reference = kwargs.get("reference", "payment-ref")
+        return {
+            "status": "processing",
+            "reference": reference,
+            "external_reference": reference.upper(),
+        }
+
+    async def fake_get_payment_status(reference):
+        return {
+            "status": "completed",
+            "reference": reference,
+            "external_reference": reference,
+        }
+
+    monkeypatch.setattr("app.api.rentals.create_mobile_payment", fake_create_mobile_payment)
+    monkeypatch.setattr("app.api.rentals.get_payment_status", fake_get_payment_status)
+
+
+@pytest.fixture
+def mock_snippe_failed_lookup(monkeypatch):
+    async def fake_create_mobile_payment(**kwargs):
+        reference = kwargs.get("reference", "payment-ref")
+        return {
+            "status": "processing",
+            "reference": reference,
+            "external_reference": reference.upper(),
+        }
+
+    async def fake_get_payment_status(reference):
+        return {
+            "status": "failed",
+            "reference": reference,
+            "external_reference": reference,
+        }
+
+    monkeypatch.setattr("app.api.rentals.create_mobile_payment", fake_create_mobile_payment)
+    monkeypatch.setattr("app.api.rentals.get_payment_status", fake_get_payment_status)
+
+
+def register_user(client, phone="0712345678", name="Test User", role="renter", email=None):
     return client.post(
         "/api/v1/auth/register",
         json={
             "phone": phone,
             "full_name": name,
             "password": "testpass123",
+            "email": email,
             "role": role,
         },
     )
