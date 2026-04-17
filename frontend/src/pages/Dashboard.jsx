@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import { Building, Users, CreditCard, TrendingUp, Plus, Loader2, ChevronRight, ShieldCheck, Mail, Phone, AlertCircle, CheckCircle } from 'lucide-react'
-import { auth as authApi, dashboard as dashApi } from '../services/api'
+import { auth as authApi, dashboard as dashApi, properties as propApi } from '../services/api'
 import { useAuth } from '../context/useAuth'
 
 export default function Dashboard() {
@@ -13,6 +13,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true)
   const [tab, setTab] = useState('overview')
   const [reviewingState, setReviewingState] = useState({ userId: null, action: '' })
+  const [propertyActionState, setPropertyActionState] = useState({ propertyId: null, action: '' })
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
 
@@ -65,6 +66,51 @@ export default function Dashboard() {
       setError(err.message || `Unable to ${verification_status === 'verified' ? 'verify' : 'reject'} this user right now.`)
     } finally {
       setReviewingState({ userId: null, action: '' })
+    }
+  }
+
+  const updatePropertyCard = (updatedProperty) => {
+    setProperties((current) => current.map((property) => (
+      property.property_id === updatedProperty.id
+        ? {
+            ...property,
+            status: updatedProperty.status,
+            rent_amount: updatedProperty.rent_amount,
+            is_verified: updatedProperty.is_verified,
+            is_premium: updatedProperty.is_premium,
+          }
+        : property
+    )))
+  }
+
+  const handlePropertyStatus = async (property) => {
+    const nextStatus = property.status === 'active' ? 'inactive' : 'active'
+    setPropertyActionState({ propertyId: property.property_id, action: nextStatus })
+    setError('')
+    setSuccess('')
+    try {
+      const updated = await propApi.update(property.property_id, { status: nextStatus })
+      updatePropertyCard(updated)
+      setSuccess(`${property.title} is now ${updated.status.replace('_', ' ')}.`)
+    } catch (err) {
+      setError(err.message || `Unable to update ${property.title} right now.`)
+    } finally {
+      setPropertyActionState({ propertyId: null, action: '' })
+    }
+  }
+
+  const handleBoostProperty = async (property) => {
+    setPropertyActionState({ propertyId: property.property_id, action: 'boost' })
+    setError('')
+    setSuccess('')
+    try {
+      const updated = await propApi.boost(property.property_id)
+      updatePropertyCard(updated)
+      setSuccess(`${property.title} was boosted successfully.`)
+    } catch (err) {
+      setError(err.message || `Unable to boost ${property.title} right now.`)
+    } finally {
+      setPropertyActionState({ propertyId: null, action: '' })
     }
   }
 
@@ -230,6 +276,28 @@ export default function Dashboard() {
                           <span className="text-gray-400">&middot; Since {new Date(p.current_tenant.rental_start).toLocaleDateString()}</span>
                         </div>
                       )}
+                      <div className="flex flex-wrap items-center gap-2 mt-3">
+                        <button
+                          type="button"
+                          disabled={propertyActionState.propertyId === p.property_id}
+                          onClick={() => handlePropertyStatus(p)}
+                          className="px-3 py-1.5 rounded-lg border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                        >
+                          {propertyActionState.propertyId === p.property_id && propertyActionState.action !== 'boost'
+                            ? p.status === 'active' ? 'Updating...' : 'Activating...'
+                            : p.status === 'active' ? 'Deactivate' : 'Activate'}
+                        </button>
+                        <button
+                          type="button"
+                          disabled={propertyActionState.propertyId === p.property_id || p.is_premium}
+                          onClick={() => handleBoostProperty(p)}
+                          className="px-3 py-1.5 rounded-lg border border-amber-200 text-sm font-medium text-amber-700 hover:bg-amber-50 disabled:opacity-50"
+                        >
+                          {propertyActionState.propertyId === p.property_id && propertyActionState.action === 'boost'
+                            ? 'Boosting...'
+                            : p.is_premium ? 'Premium Active' : 'Boost Listing'}
+                        </button>
+                      </div>
                     </div>
                     <div className="flex items-center gap-3 ml-4">
                       <Link to={`/properties/${p.property_id}/edit`} className="text-sm font-medium text-emerald-600 hover:text-emerald-700">
