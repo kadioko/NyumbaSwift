@@ -1,1 +1,130 @@
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap");
 @import "tailwindcss";
+
+:root {
+  --font-display: "Space Grotesk", sans-serif;
+  --font-body: "Manrope", sans-serif;
+  --surface-0: #f4efe5;
+  --surface-1: #fffaf2;
+  --surface-2: #ffffff;
+  --surface-3: #f3f7f2;
+  --ink-strong: #112419;
+  --ink-soft: #556257;
+  --line-soft: rgba(17, 36, 25, 0.09);
+  --brand-1: #0f7f5f;
+  --brand-2: #1e9b74;
+  --brand-3: #dff4e8;
+  --accent-gold: #d39a34;
+  --shadow-soft: 0 20px 60px rgba(17, 36, 25, 0.08);
+  --shadow-card: 0 14px 34px rgba(17, 36, 25, 0.08);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  font-family: var(--font-body);
+  color: var(--ink-strong);
+  background:
+    radial-gradient(circle at top left, rgba(30, 155, 116, 0.16), transparent 32%),
+    radial-gradient(circle at bottom right, rgba(211, 154, 52, 0.12), transparent 24%),
+    linear-gradient(180deg, #fff9f0 0%, #f6f4ed 44%, #eff5ef 100%);
+}
+
+#root {
+  min-height: 100vh;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-display);
+  letter-spacing: -0.03em;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+::selection {
+  color: white;
+  background: rgba(15, 127, 95, 0.75);
+}
+
+@layer components {
+  .app-shell {
+    position: relative;
+    isolation: isolate;
+  }
+
+  .app-shell::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -2;
+    background:
+      radial-gradient(circle at 15% 20%, rgba(30, 155, 116, 0.11), transparent 26%),
+      radial-gradient(circle at 85% 14%, rgba(211, 154, 52, 0.11), transparent 18%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.5), rgba(241, 245, 241, 0.18));
+    pointer-events: none;
+  }
+
+  .app-shell::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    opacity: 0.3;
+    background-image:
+      linear-gradient(rgba(17, 36, 25, 0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(17, 36, 25, 0.04) 1px, transparent 1px);
+    background-size: 64px 64px;
+    mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.3), transparent 90%);
+    pointer-events: none;
+  }
+
+  .shell-card {
+    border: 1px solid var(--line-soft);
+    background: rgba(255, 255, 255, 0.8);
+    box-shadow: var(--shadow-card);
+    backdrop-filter: blur(16px);
+  }
+
+  .shell-panel {
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    background: linear-gradient(180deg, rgba(16, 32, 25, 0.88), rgba(10, 24, 19, 0.96));
+    box-shadow: 0 26px 90px rgba(8, 17, 13, 0.36);
+  }
+
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    border: 1px solid rgba(17, 36, 25, 0.08);
+    border-radius: 9999px;
+    padding: 0.45rem 0.9rem;
+    background: rgba(255, 255, 255, 0.74);
+    color: var(--ink-soft);
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .section-heading {
+    max-width: 42rem;
+    font-size: clamp(2rem, 4vw, 3.8rem);
+    line-height: 0.98;
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+}

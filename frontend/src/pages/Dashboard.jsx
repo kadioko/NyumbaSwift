@@ -1,6 +1,19 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Link } from 'react-router-dom'
-import { Building, Users, CreditCard, TrendingUp, Plus, Loader2, ChevronRight, ShieldCheck, Mail, Phone, AlertCircle, CheckCircle } from 'lucide-react'
+import {
+  Building,
+  Users,
+  CreditCard,
+  TrendingUp,
+  Plus,
+  Loader2,
+  ChevronRight,
+  ShieldCheck,
+  Mail,
+  Phone,
+  AlertCircle,
+  CheckCircle,
+} from 'lucide-react'
 import { auth as authApi, dashboard as dashApi, properties as propApi } from '../services/api'
 import { useAuth } from '../context/useAuth'
 
@@ -116,8 +129,8 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="w-8 h-8 text-emerald-600 animate-spin" />
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-emerald-600" />
       </div>
     )
   }
@@ -125,54 +138,58 @@ export default function Dashboard() {
   const stats = summary ? [
     { label: 'Total Properties', value: summary.total_properties, icon: Building, color: 'bg-blue-50 text-blue-600' },
     { label: 'Active Listings', value: summary.active_listings, icon: TrendingUp, color: 'bg-emerald-50 text-emerald-600' },
-    { label: isAdmin ? 'Active Rentals' : 'Active Tenants', value: summary.active_rentals, icon: Users, color: 'bg-purple-50 text-purple-600' },
+    { label: isAdmin ? 'Active Rentals' : 'Active Tenants', value: summary.active_rentals, icon: Users, color: 'bg-violet-50 text-violet-600' },
     { label: isAdmin ? 'Platform Revenue' : 'Rent Collected', value: `TZS ${(isAdmin ? summary.total_platform_revenue_tzs : summary.total_rent_collected_tzs)?.toLocaleString()}`, icon: CreditCard, color: 'bg-amber-50 text-amber-600' },
   ] : []
 
   const tabs = isAdmin ? ['overview', 'verifications'] : ['overview', 'properties']
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-              <p className="text-gray-500 mt-0.5">Welcome back, {user?.full_name}</p>
+    <div className="min-h-screen">
+      <div className="px-4 pt-5 sm:px-6 lg:px-8">
+        <div className="shell-card mx-auto max-w-7xl overflow-hidden rounded-[2rem]">
+          <div className="bg-[radial-gradient(circle_at_top_left,_rgba(15,127,95,0.15),_transparent_36%),radial-gradient(circle_at_top_right,_rgba(211,154,52,0.12),_transparent_20%),linear-gradient(135deg,_rgba(255,255,255,0.94),_rgba(240,247,241,0.94))] px-4 py-6 sm:px-6 lg:px-8">
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+              <div>
+                <div className="eyebrow mb-3">Control center</div>
+                <h1 className="text-3xl font-bold text-slate-950">Dashboard</h1>
+                <p className="mt-1 text-slate-600">Welcome back, {user?.full_name}</p>
+              </div>
+              {!isAdmin && (
+                <Link
+                  to="/properties/new"
+                  className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-700 px-5 py-3 font-semibold text-white shadow-[0_16px_28px_rgba(15,127,95,0.22)] transition-transform hover:-translate-y-0.5"
+                >
+                  <Plus className="h-4 w-4" />
+                  Add Property
+                </Link>
+              )}
             </div>
-            {!isAdmin && (
-              <Link
-                to="/properties/new"
-                className="inline-flex items-center gap-2 bg-emerald-600 text-white px-4 py-2.5 rounded-lg font-medium hover:bg-emerald-700 transition-colors"
-              >
-                <Plus className="w-4 h-4" /> Add Property
-              </Link>
-            )}
-          </div>
 
-          <div className="flex gap-1 mt-6 -mb-px">
-            {tabs.map((t) => (
-              <button
-                key={t}
-                onClick={() => setTab(t)}
-                className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors capitalize ${
-                  tab === t
-                    ? 'border-emerald-600 text-emerald-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700'
-                }`}
-              >
-                {t}
-              </button>
-            ))}
+            <div className="mt-6 flex gap-2 overflow-x-auto">
+              {tabs.map((t) => (
+                <button
+                  key={t}
+                  onClick={() => setTab(t)}
+                  className={`rounded-full px-4 py-2 text-sm font-semibold capitalize transition-colors ${
+                    tab === t
+                      ? 'bg-slate-950 text-white'
+                      : 'bg-white/85 text-slate-600 hover:bg-emerald-50 hover:text-emerald-700'
+                  }`}
+                >
+                  {t}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
         {error && (
-          <div className="flex items-center justify-between gap-3 bg-red-50 text-red-700 px-4 py-3 rounded-lg mb-6 text-sm border border-red-100">
+          <div className="mb-6 flex items-center justify-between gap-3 rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700">
             <div className="flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 shrink-0" />
+              <AlertCircle className="h-4 w-4 shrink-0" />
               <span>{error}</span>
             </div>
             <button type="button" onClick={loadDashboard} className="font-medium text-red-700 hover:text-red-800">
@@ -182,208 +199,222 @@ export default function Dashboard() {
         )}
 
         {success && (
-          <div className="flex items-center gap-2 bg-emerald-50 text-emerald-700 px-4 py-3 rounded-lg mb-6 text-sm border border-emerald-100">
-            <CheckCircle className="w-4 h-4 shrink-0" />
+          <div className="mb-6 flex items-center gap-2 rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+            <CheckCircle className="h-4 w-4 shrink-0" />
             <span>{success}</span>
           </div>
         )}
 
         {!summary ? (
-          <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
-            <Building className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-            <h3 className="font-semibold text-gray-700 mb-1">Dashboard data is unavailable</h3>
-            <p className="text-gray-500 mb-4">We couldn&apos;t load your latest dashboard information.</p>
-            <button type="button" onClick={loadDashboard} className="inline-flex items-center gap-2 bg-emerald-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-emerald-700">
-              <Loader2 className="w-4 h-4" /> Try Again
+          <div className="shell-card rounded-[1.8rem] p-12 text-center">
+            <Building className="mx-auto mb-3 h-12 w-12 text-slate-300" />
+            <h3 className="mb-1 font-semibold text-slate-700">Dashboard data is unavailable</h3>
+            <p className="mb-4 text-slate-500">We couldn&apos;t load your latest dashboard information.</p>
+            <button type="button" onClick={loadDashboard} className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 font-medium text-white hover:bg-emerald-700">
+              <Loader2 className="h-4 w-4" />
+              Try Again
             </button>
           </div>
         ) : (
           <>
-        {tab === 'overview' && (
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {stats.map(({ label, value, icon, color }) => {
-                const Icon = icon
-                return (
-                  <div key={label} className="bg-white rounded-xl border border-gray-200 p-5">
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-sm text-gray-500">{label}</span>
-                      <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${color}`}>
-                        <Icon className="w-4 h-4" />
-                      </div>
-                    </div>
-                    <div className="text-2xl font-bold text-gray-900">{value}</div>
-                  </div>
-                )
-              })}
-            </div>
-
-            <div className="bg-white rounded-xl border border-gray-200 p-6">
-              <h3 className="font-semibold text-gray-900 mb-4">{isAdmin ? 'Platform Summary' : 'Revenue Summary'}</h3>
-              <div className="grid sm:grid-cols-3 gap-6">
-                <div>
-                  <div className="text-sm text-gray-500 mb-1">{isAdmin ? 'Rent Processed' : 'Total Rent Collected'}</div>
-                  <div className="text-xl font-bold text-gray-900">TZS {(isAdmin ? summary.total_rent_processed_tzs : summary.total_rent_collected_tzs)?.toLocaleString()}</div>
-                </div>
-                <div>
-                  <div className="text-sm text-gray-500 mb-1">{isAdmin ? 'Unlock Revenue' : 'Platform Fees Paid'}</div>
-                  <div className="text-xl font-bold text-gray-900">TZS {(isAdmin ? summary.unlock_fees_revenue_tzs : summary.total_platform_fees_tzs)?.toLocaleString()}</div>
-                </div>
-                <div>
-                  <div className="text-sm text-gray-500 mb-1">{isAdmin ? 'Pending Verifications' : 'Pending Payments'}</div>
-                  <div className="text-xl font-bold text-amber-600">{isAdmin ? pendingVerifications.length : summary.pending_payments}</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {!isAdmin && tab === 'properties' && (
-          <div className="space-y-4">
-            {properties.length === 0 ? (
-              <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
-                <Building className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                <h3 className="font-semibold text-gray-700 mb-1">No properties yet</h3>
-                <p className="text-gray-500 mb-4">Start by adding your first rental property</p>
-                <Link to="/properties/new" className="inline-flex items-center gap-2 bg-emerald-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-emerald-700">
-                  <Plus className="w-4 h-4" /> Add Property
-                </Link>
-              </div>
-            ) : (
-              properties.map((p) => (
-                <div key={p.property_id} className="bg-white rounded-xl border border-gray-200 p-5 hover:border-emerald-200 transition-colors">
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-1">
-                        <h3 className="font-semibold text-gray-900">{p.title}</h3>
-                        <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                          p.status === 'active' ? 'bg-emerald-100 text-emerald-700' :
-                          p.status === 'pending_verification' ? 'bg-amber-100 text-amber-700' :
-                          'bg-gray-100 text-gray-600'
-                        }`}>
-                          {p.status.replace('_', ' ')}
-                        </span>
-                        {p.is_verified && <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">Verified</span>}
-                        {p.is_premium && <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">Premium</span>}
-                      </div>
-                      <div className="text-sm text-gray-500">{p.district} &middot; TZS {p.rent_amount?.toLocaleString()}/mo</div>
-                      {p.current_tenant && (
-                        <div className="mt-2 flex items-center gap-2 text-sm">
-                          <div className="w-6 h-6 bg-emerald-100 rounded-full flex items-center justify-center text-xs font-semibold text-emerald-700">
-                            {p.current_tenant.name?.charAt(0)}
+            {tab === 'overview' && (
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                  {stats.map(({ label, value, icon, color }) => {
+                    const Icon = icon
+                    return (
+                      <div key={label} className="shell-card rounded-[1.5rem] p-5">
+                        <div className="mb-3 flex items-center justify-between">
+                          <span className="text-sm text-slate-500">{label}</span>
+                          <div className={`flex h-10 w-10 items-center justify-center rounded-2xl ${color}`}>
+                            <Icon className="h-4 w-4" />
                           </div>
-                          <span className="text-gray-700">{p.current_tenant.name}</span>
-                          <span className="text-gray-400">&middot; Since {new Date(p.current_tenant.rental_start).toLocaleDateString()}</span>
                         </div>
-                      )}
-                      <div className="flex flex-wrap items-center gap-2 mt-3">
-                        <button
-                          type="button"
-                          disabled={propertyActionState.propertyId === p.property_id}
-                          onClick={() => handlePropertyStatus(p)}
-                          className="px-3 py-1.5 rounded-lg border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
-                        >
-                          {propertyActionState.propertyId === p.property_id && propertyActionState.action !== 'boost'
-                            ? p.status === 'active' ? 'Updating...' : 'Activating...'
-                            : p.status === 'active' ? 'Deactivate' : 'Activate'}
-                        </button>
-                        <button
-                          type="button"
-                          disabled={propertyActionState.propertyId === p.property_id || p.is_premium}
-                          onClick={() => handleBoostProperty(p)}
-                          className="px-3 py-1.5 rounded-lg border border-amber-200 text-sm font-medium text-amber-700 hover:bg-amber-50 disabled:opacity-50"
-                        >
-                          {propertyActionState.propertyId === p.property_id && propertyActionState.action === 'boost'
-                            ? 'Boosting...'
-                            : p.is_premium ? 'Premium Active' : 'Boost Listing'}
-                        </button>
+                        <div className="text-2xl font-bold text-slate-950">{value}</div>
                       </div>
-                    </div>
-                    <div className="flex items-center gap-3 ml-4">
-                      <Link to={`/properties/${p.property_id}/edit`} className="text-sm font-medium text-emerald-600 hover:text-emerald-700">
-                        Edit
-                      </Link>
-                      <Link to={`/properties/${p.property_id}`} className="text-gray-400 hover:text-emerald-600">
-                        <ChevronRight className="w-5 h-5" />
-                      </Link>
-                    </div>
-                  </div>
+                    )
+                  })}
                 </div>
-              ))
-            )}
-          </div>
-        )}
 
-        {isAdmin && tab === 'verifications' && (
-          <div className="space-y-4">
-            {pendingVerifications.length === 0 ? (
-              <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
-                <ShieldCheck className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                <h3 className="font-semibold text-gray-700 mb-1">No pending user verifications</h3>
-                <p className="text-gray-500">New renter and user submissions will appear here for admin review.</p>
-              </div>
-            ) : (
-              pendingVerifications.map((pendingUser) => (
-                <div key={pendingUser.id} className="bg-white rounded-2xl border border-gray-200 p-6">
-                  <div className="flex flex-col lg:flex-row gap-6">
-                    <div className="flex-1 space-y-3">
-                      <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center font-semibold text-emerald-700">
-                          {pendingUser.full_name?.charAt(0)}
-                        </div>
-                        <div>
-                          <h3 className="font-semibold text-gray-900">{pendingUser.full_name}</h3>
-                          <div className="text-sm text-gray-500 capitalize">{pendingUser.role}</div>
-                        </div>
+                <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+                  <div className="shell-card rounded-[1.75rem] p-6">
+                    <h3 className="mb-4 font-semibold text-slate-950">{isAdmin ? 'Platform Summary' : 'Revenue Summary'}</h3>
+                    <div className="grid gap-6 sm:grid-cols-3">
+                      <div>
+                        <div className="mb-1 text-sm text-slate-500">{isAdmin ? 'Rent Processed' : 'Total Rent Collected'}</div>
+                        <div className="text-xl font-bold text-slate-950">TZS {(isAdmin ? summary.total_rent_processed_tzs : summary.total_rent_collected_tzs)?.toLocaleString()}</div>
                       </div>
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <Phone className="w-4 h-4 text-gray-400" />
-                        <span>{pendingUser.phone}</span>
+                      <div>
+                        <div className="mb-1 text-sm text-slate-500">{isAdmin ? 'Unlock Revenue' : 'Platform Fees Paid'}</div>
+                        <div className="text-xl font-bold text-slate-950">TZS {(isAdmin ? summary.unlock_fees_revenue_tzs : summary.total_platform_fees_tzs)?.toLocaleString()}</div>
                       </div>
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <Mail className="w-4 h-4 text-gray-400" />
-                        <span>{pendingUser.email || 'No email provided'}</span>
+                      <div>
+                        <div className="mb-1 text-sm text-slate-500">{isAdmin ? 'Pending Verifications' : 'Pending Payments'}</div>
+                        <div className="text-xl font-bold text-amber-600">{isAdmin ? pendingVerifications.length : summary.pending_payments}</div>
                       </div>
-                      <div className="text-sm text-gray-600">
-                        National ID: <span className="font-medium text-gray-800">{pendingUser.national_id || 'Not provided'}</span>
-                      </div>
-                      <div className="inline-flex items-center rounded-full bg-amber-50 text-amber-700 text-xs font-medium px-3 py-1 border border-amber-100">
-                        Awaiting admin review
-                      </div>
-                      <div className="flex gap-3 pt-2">
-                        <button
-                          type="button"
-                          disabled={reviewingState.userId === pendingUser.id}
-                          onClick={() => handleReviewVerification(pendingUser.id, 'verified')}
-                          className="px-4 py-2 rounded-lg bg-emerald-600 text-white font-medium hover:bg-emerald-700 disabled:opacity-50"
-                        >
-                          {reviewingState.userId === pendingUser.id && reviewingState.action === 'verified' ? 'Verifying...' : 'Verify User'}
-                        </button>
-                        <button
-                          type="button"
-                          disabled={reviewingState.userId === pendingUser.id}
-                          onClick={() => handleReviewVerification(pendingUser.id, 'rejected')}
-                          className="px-4 py-2 rounded-lg border border-red-200 text-red-600 font-medium hover:bg-red-50 disabled:opacity-50"
-                        >
-                          {reviewingState.userId === pendingUser.id && reviewingState.action === 'rejected' ? 'Rejecting...' : 'Reject'}
-                        </button>
-                      </div>
-                    </div>
-                    <div className="lg:w-[320px]">
-                      {pendingUser.profile_photo_url ? (
-                        <img src={pendingUser.profile_photo_url} alt={`${pendingUser.full_name} ID`} className="w-full max-h-80 object-contain rounded-xl border border-gray-200 bg-gray-50" />
-                      ) : (
-                        <div className="h-full min-h-48 rounded-xl border border-dashed border-gray-300 flex items-center justify-center text-sm text-gray-400">
-                          No National ID image uploaded
-                        </div>
-                      )}
                     </div>
                   </div>
+
+                  <div className="rounded-[1.75rem] bg-gradient-to-br from-slate-950 via-emerald-950 to-teal-950 p-6 text-white shadow-[0_28px_80px_rgba(8,17,13,0.28)]">
+                    <div className="mb-2 text-sm uppercase tracking-[0.18em] text-emerald-200/70">Momentum</div>
+                    <div className="mb-4 text-2xl font-bold">{isAdmin ? 'Platform health looks strong' : 'Your portfolio is moving'}</div>
+                    <p className="text-sm leading-relaxed text-emerald-50/78">
+                      {isAdmin
+                        ? 'Use verification turnaround and rent processed totals to keep trust and platform liquidity improving together.'
+                        : 'Prioritize premium boosts and active listing quality to keep occupancy high and rent collection predictable.'}
+                    </p>
+                  </div>
                 </div>
-              ))
+              </div>
             )}
-          </div>
-        )}
+
+            {!isAdmin && tab === 'properties' && (
+              <div className="space-y-4">
+                {properties.length === 0 ? (
+                  <div className="shell-card rounded-[1.8rem] p-12 text-center">
+                    <Building className="mx-auto mb-3 h-12 w-12 text-slate-300" />
+                    <h3 className="mb-1 font-semibold text-slate-700">No properties yet</h3>
+                    <p className="mb-4 text-slate-500">Start by adding your first rental property.</p>
+                    <Link to="/properties/new" className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 font-medium text-white hover:bg-emerald-700">
+                      <Plus className="h-4 w-4" />
+                      Add Property
+                    </Link>
+                  </div>
+                ) : (
+                  properties.map((p) => (
+                    <div key={p.property_id} className="shell-card rounded-[1.6rem] p-5 transition-colors hover:border-emerald-200">
+                      <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+                        <div className="flex-1">
+                          <div className="mb-1 flex flex-wrap items-center gap-3">
+                            <h3 className="font-semibold text-slate-950">{p.title}</h3>
+                            <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                              p.status === 'active' ? 'bg-emerald-100 text-emerald-700' :
+                              p.status === 'pending_verification' ? 'bg-amber-100 text-amber-700' :
+                              'bg-slate-100 text-slate-600'
+                            }`}>
+                              {p.status.replace('_', ' ')}
+                            </span>
+                            {p.is_verified && <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs text-emerald-700">Verified</span>}
+                            {p.is_premium && <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs text-amber-700">Premium</span>}
+                          </div>
+                          <div className="text-sm text-slate-500">{p.district} &middot; TZS {p.rent_amount?.toLocaleString()}/mo</div>
+                          {p.current_tenant && (
+                            <div className="mt-2 flex items-center gap-2 text-sm">
+                              <div className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-100 text-xs font-semibold text-emerald-700">
+                                {p.current_tenant.name?.charAt(0)}
+                              </div>
+                              <span className="text-slate-700">{p.current_tenant.name}</span>
+                              <span className="text-slate-400">&middot; Since {new Date(p.current_tenant.rental_start).toLocaleDateString()}</span>
+                            </div>
+                          )}
+                          <div className="mt-4 flex flex-wrap items-center gap-2">
+                            <button
+                              type="button"
+                              disabled={propertyActionState.propertyId === p.property_id}
+                              onClick={() => handlePropertyStatus(p)}
+                              className="rounded-xl border border-slate-200 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                            >
+                              {propertyActionState.propertyId === p.property_id && propertyActionState.action !== 'boost'
+                                ? p.status === 'active' ? 'Updating...' : 'Activating...'
+                                : p.status === 'active' ? 'Deactivate' : 'Activate'}
+                            </button>
+                            <button
+                              type="button"
+                              disabled={propertyActionState.propertyId === p.property_id || p.is_premium}
+                              onClick={() => handleBoostProperty(p)}
+                              className="rounded-xl border border-amber-200 px-3 py-1.5 text-sm font-medium text-amber-700 hover:bg-amber-50 disabled:opacity-50"
+                            >
+                              {propertyActionState.propertyId === p.property_id && propertyActionState.action === 'boost'
+                                ? 'Boosting...'
+                                : p.is_premium ? 'Premium Active' : 'Boost Listing'}
+                            </button>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3 lg:ml-4">
+                          <Link to={`/properties/${p.property_id}/edit`} className="text-sm font-medium text-emerald-700 hover:text-emerald-800">
+                            Edit
+                          </Link>
+                          <Link to={`/properties/${p.property_id}`} className="rounded-full border border-slate-200 bg-white/85 p-2 text-slate-400 hover:text-emerald-600">
+                            <ChevronRight className="h-5 w-5" />
+                          </Link>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
+
+            {isAdmin && tab === 'verifications' && (
+              <div className="space-y-4">
+                {pendingVerifications.length === 0 ? (
+                  <div className="shell-card rounded-[1.8rem] p-12 text-center">
+                    <ShieldCheck className="mx-auto mb-3 h-12 w-12 text-slate-300" />
+                    <h3 className="mb-1 font-semibold text-slate-700">No pending user verifications</h3>
+                    <p className="text-slate-500">New renter and user submissions will appear here for admin review.</p>
+                  </div>
+                ) : (
+                  pendingVerifications.map((pendingUser) => (
+                    <div key={pendingUser.id} className="shell-card rounded-[1.8rem] p-6">
+                      <div className="flex flex-col gap-6 lg:flex-row">
+                        <div className="flex-1 space-y-3">
+                          <div className="flex items-center gap-3">
+                            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 font-semibold text-emerald-700">
+                              {pendingUser.full_name?.charAt(0)}
+                            </div>
+                            <div>
+                              <h3 className="font-semibold text-slate-950">{pendingUser.full_name}</h3>
+                              <div className="text-sm capitalize text-slate-500">{pendingUser.role}</div>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm text-slate-600">
+                            <Phone className="h-4 w-4 text-slate-400" />
+                            <span>{pendingUser.phone}</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm text-slate-600">
+                            <Mail className="h-4 w-4 text-slate-400" />
+                            <span>{pendingUser.email || 'No email provided'}</span>
+                          </div>
+                          <div className="text-sm text-slate-600">
+                            National ID: <span className="font-medium text-slate-800">{pendingUser.national_id || 'Not provided'}</span>
+                          </div>
+                          <div className="inline-flex items-center rounded-full border border-amber-100 bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700">
+                            Awaiting admin review
+                          </div>
+                          <div className="flex gap-3 pt-2">
+                            <button
+                              type="button"
+                              disabled={reviewingState.userId === pendingUser.id}
+                              onClick={() => handleReviewVerification(pendingUser.id, 'verified')}
+                              className="rounded-xl bg-emerald-600 px-4 py-2 font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
+                            >
+                              {reviewingState.userId === pendingUser.id && reviewingState.action === 'verified' ? 'Verifying...' : 'Verify User'}
+                            </button>
+                            <button
+                              type="button"
+                              disabled={reviewingState.userId === pendingUser.id}
+                              onClick={() => handleReviewVerification(pendingUser.id, 'rejected')}
+                              className="rounded-xl border border-red-200 px-4 py-2 font-medium text-red-600 hover:bg-red-50 disabled:opacity-50"
+                            >
+                              {reviewingState.userId === pendingUser.id && reviewingState.action === 'rejected' ? 'Rejecting...' : 'Reject'}
+                            </button>
+                          </div>
+                        </div>
+                        <div className="lg:w-[320px]">
+                          {pendingUser.profile_photo_url ? (
+                            <img src={pendingUser.profile_photo_url} alt={`${pendingUser.full_name} ID`} className="max-h-80 w-full rounded-2xl border border-slate-200 bg-slate-50 object-contain" />
+                          ) : (
+                            <div className="flex h-full min-h-48 items-center justify-center rounded-2xl border border-dashed border-slate-300 text-sm text-slate-400">
+                              No National ID image uploaded
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
           </>
         )}
       </div>

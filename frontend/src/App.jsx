@@ -54,7 +54,7 @@ function RouteGate({ requireAuth = false, allowedRoles = null }) {
 
 export default function App() {
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="app-shell min-h-screen flex flex-col text-slate-900">
       <Navbar />
       <main className="flex-1">
         <Routes>

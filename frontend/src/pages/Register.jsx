@@ -1,13 +1,23 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/useAuth'
-import { Home, Phone, Lock, User, AlertCircle } from 'lucide-react'
+import { Home, Phone, Lock, User, AlertCircle, Mail, Building2, KeyRound } from 'lucide-react'
+import { bannerStyles, buttonStyles, cn, leadingInputStyles } from '../components/ui'
+
+const ROLES = [
+  { value: 'renter', label: 'Renter', desc: 'Looking for a verified place', icon: KeyRound },
+  { value: 'landlord', label: 'Landlord', desc: 'Listing and managing properties', icon: Building2 },
+]
 
 export default function Register() {
   const { register } = useAuth()
   const navigate = useNavigate()
   const [form, setForm] = useState({
-    phone: '', full_name: '', email: '', password: '', role: 'renter',
+    phone: '',
+    full_name: '',
+    email: '',
+    password: '',
+    role: 'renter',
   })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -26,132 +36,156 @@ export default function Register() {
     }
   }
 
-  const set = (k) => (e) => setForm({ ...form, [k]: e.target.value })
+  const set = (key) => (e) => setForm({ ...form, [key]: e.target.value })
 
   return (
-    <div className="min-h-[80vh] flex items-center justify-center bg-gray-50 py-12 px-4">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <Link to="/" className="inline-flex items-center gap-2 mb-4">
-            <div className="w-10 h-10 bg-emerald-600 rounded-xl flex items-center justify-center">
-              <Home className="w-6 h-6 text-white" />
+    <div className="min-h-[80vh] px-4 py-12 sm:px-6 lg:px-8">
+      <div className="mx-auto grid w-full max-w-6xl overflow-hidden rounded-[2rem] border border-white/75 bg-white/82 shadow-[0_24px_60px_rgba(17,36,25,0.12)] backdrop-blur-xl lg:grid-cols-[0.95fr_1.05fr]">
+        <div className="relative hidden overflow-hidden bg-gradient-to-br from-slate-950 via-emerald-950 to-teal-900 p-10 text-white lg:block">
+          <div className="absolute inset-0 opacity-25">
+            <div className="absolute -left-10 top-16 h-44 w-44 rounded-full bg-emerald-300 blur-3xl" />
+            <div className="absolute bottom-4 right-4 h-56 w-56 rounded-full bg-amber-300 blur-3xl" />
+          </div>
+          <div className="relative">
+            <Link to="/" className="mb-12 inline-flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/14">
+                <Home className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <div className="text-xl font-bold">NyumbaSwift</div>
+                <div className="text-xs uppercase tracking-[0.2em] text-emerald-100/60">Verified rentals in Dar</div>
+              </div>
+            </Link>
+            <div className="max-w-sm">
+              <div className="eyebrow mb-5 border-white/10 bg-white/8 text-emerald-50/78">Create account</div>
+              <h1 className="mb-4 text-4xl font-bold leading-tight">Join a rental marketplace that feels more trustworthy from day one.</h1>
+              <p className="text-sm leading-relaxed text-emerald-50/74">
+                Whether you are searching for a home or managing properties, the experience should feel cleaner, safer, and easier to trust.
+              </p>
             </div>
-          </Link>
-          <h1 className="text-2xl font-bold text-gray-900">Create your account</h1>
-          <p className="text-gray-500 mt-1">Start finding or listing rentals in Dar</p>
+          </div>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
-          {error && (
-            <div className="flex items-center gap-2 bg-red-50 text-red-700 px-4 py-3 rounded-lg mb-6 text-sm">
-              <AlertCircle className="w-4 h-4 shrink-0" />
-              {error}
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Role selector */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">I am a</label>
-              <div className="grid grid-cols-2 gap-3">
-                {[
-                  { value: 'renter', label: 'Renter', desc: 'Looking for a place' },
-                  { value: 'landlord', label: 'Landlord', desc: 'Listing properties' },
-                ].map(({ value, label, desc }) => (
-                  <button
-                    key={value}
-                    type="button"
-                    onClick={() => setForm({ ...form, role: value })}
-                    className={`p-3 rounded-xl border-2 text-left transition-all ${
-                      form.role === value
-                        ? 'border-emerald-500 bg-emerald-50'
-                        : 'border-gray-200 hover:border-gray-300'
-                    }`}
-                  >
-                    <div className="font-semibold text-gray-900">{label}</div>
-                    <div className="text-xs text-gray-500">{desc}</div>
-                  </button>
-                ))}
+        <div className="p-8 sm:p-10">
+          <div className="mb-8 text-center lg:text-left">
+            <Link to="/" className="mb-4 inline-flex items-center gap-2 lg:hidden">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-600">
+                <Home className="h-6 w-6 text-white" />
               </div>
-            </div>
+            </Link>
+            <h1 className="text-3xl font-bold text-slate-950">Create your account</h1>
+            <p className="mt-1 text-slate-500">Start finding or listing rentals in Dar</p>
+          </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Full Name</label>
-              <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="John Mwalimu"
-                  value={form.full_name}
-                  onChange={set('full_name')}
-                  className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
-                  required
-                />
+          <div className="rounded-[1.5rem] border border-slate-100 bg-white/88 p-6 shadow-sm sm:p-8">
+            {error && (
+              <div className={bannerStyles('error', 'mb-6')}>
+                <AlertCircle className="h-4 w-4 shrink-0" />
+                {error}
               </div>
-            </div>
+            )}
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Email</label>
-              <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <input
-                  type="email"
-                  placeholder="john@example.com"
-                  value={form.email}
-                  onChange={set('email')}
-                  className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
-                  required
-                />
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div>
+                <label className="mb-2 block text-sm font-medium text-slate-700">I am a</label>
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  {ROLES.map(({ value, label, desc, icon }) => {
+                    const Icon = icon
+                    return (
+                      <button
+                        key={value}
+                        type="button"
+                        onClick={() => setForm({ ...form, role: value })}
+                        className={cn(
+                          'rounded-[1.25rem] border-2 p-4 text-left transition-all',
+                          form.role === value
+                            ? 'border-emerald-400 bg-emerald-50 shadow-sm'
+                            : 'border-slate-200 bg-white hover:border-slate-300',
+                        )}
+                      >
+                        <Icon className={cn('mb-3 h-5 w-5', form.role === value ? 'text-emerald-700' : 'text-slate-400')} />
+                        <div className="font-semibold text-slate-900">{label}</div>
+                        <div className="text-xs text-slate-500">{desc}</div>
+                      </button>
+                    )
+                  })}
+                </div>
               </div>
-            </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Phone Number</label>
-              <div className="relative">
-                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <input
-                  type="tel"
-                  placeholder="0712345678"
-                  value={form.phone}
-                  onChange={set('phone')}
-                  className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
-                  required
-                />
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-slate-700">Full Name</label>
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type="text"
+                    placeholder="John Mwalimu"
+                    value={form.full_name}
+                    onChange={set('full_name')}
+                    className={leadingInputStyles()}
+                    required
+                  />
+                </div>
               </div>
-            </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <input
-                  type="password"
-                  placeholder="Create a password"
-                  value={form.password}
-                  onChange={set('password')}
-                  className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
-                  required
-                  minLength={6}
-                />
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-slate-700">Email</label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type="email"
+                    placeholder="john@example.com"
+                    value={form.email}
+                    onChange={set('email')}
+                    className={leadingInputStyles()}
+                    required
+                  />
+                </div>
               </div>
-            </div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-emerald-600 text-white py-2.5 rounded-lg font-semibold hover:bg-emerald-700 transition-colors disabled:opacity-50"
-            >
-              {loading ? 'Creating account...' : 'Create Account'}
-            </button>
-          </form>
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-slate-700">Phone Number</label>
+                <div className="relative">
+                  <Phone className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type="tel"
+                    placeholder="0712345678"
+                    value={form.phone}
+                    onChange={set('phone')}
+                    className={leadingInputStyles()}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-slate-700">Password</label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type="password"
+                    placeholder="Create a password"
+                    value={form.password}
+                    onChange={set('password')}
+                    className={leadingInputStyles()}
+                    required
+                    minLength={6}
+                  />
+                </div>
+              </div>
+
+              <button type="submit" disabled={loading} className={buttonStyles({ fullWidth: true })}>
+                {loading ? 'Creating account...' : 'Create Account'}
+              </button>
+            </form>
+          </div>
+
+          <p className="mt-6 text-center text-sm text-slate-500">
+            Already have an account?{' '}
+            <Link to="/login" className="font-medium text-emerald-700 hover:text-emerald-800">
+              Sign in
+            </Link>
+          </p>
         </div>
-
-        <p className="text-center text-sm text-gray-500 mt-6">
-          Already have an account?{' '}
-          <Link to="/login" className="text-emerald-600 font-medium hover:text-emerald-700">
-            Sign in
-          </Link>
-        </p>
       </div>
     </div>
   )

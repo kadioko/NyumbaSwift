@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../context/useAuth'
 import { auth as authApi } from '../services/api'
-import { Phone, Mail, Shield, AlertCircle, CheckCircle, Loader2, Image as ImageIcon } from 'lucide-react'
+import { Phone, Mail, Shield, AlertCircle, CheckCircle, Loader2, Image as ImageIcon, UserRound, BadgeCheck } from 'lucide-react'
+import { bannerStyles, buttonStyles, inputStyles, surfaceCard } from '../components/ui'
 
 const MAX_ID_IMAGE_BYTES = 5 * 1024 * 1024
 
@@ -83,105 +84,120 @@ export default function Profile() {
   const verificationColor = {
     verified: 'bg-emerald-100 text-emerald-700',
     pending: 'bg-amber-100 text-amber-700',
-    unverified: 'bg-gray-100 text-gray-600',
+    unverified: 'bg-slate-100 text-slate-600',
     rejected: 'bg-red-100 text-red-700',
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-2xl mx-auto px-4 space-y-6">
+    <div className="min-h-screen py-8">
+      <div className="mx-auto max-w-4xl space-y-6 px-4">
         {error && (
-          <div className="flex items-center gap-2 bg-red-50 text-red-700 px-4 py-3 rounded-lg text-sm">
-            <AlertCircle className="w-4 h-4 shrink-0" />
+          <div className={bannerStyles('error')}>
+            <AlertCircle className="h-4 w-4 shrink-0" />
             {error}
           </div>
         )}
         {success && (
-          <div className="flex items-center gap-2 bg-emerald-50 text-emerald-700 px-4 py-3 rounded-lg text-sm">
-            <CheckCircle className="w-4 h-4 shrink-0" />
+          <div className={bannerStyles('success')}>
+            <CheckCircle className="h-4 w-4 shrink-0" />
             {success}
           </div>
         )}
 
-        <div className="bg-white rounded-2xl border border-gray-200 p-6">
-          <div className="flex items-center gap-4 mb-6">
-            <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center text-2xl font-bold text-emerald-700">
-              {user.full_name?.charAt(0)}
-            </div>
-            <div>
-              <h2 className="text-xl font-bold text-gray-900">{user.full_name}</h2>
-              <div className="flex items-center gap-2 mt-1">
-                <span className="text-sm text-gray-500 capitalize">{user.role}</span>
-                <span className={`text-xs font-medium px-2 py-0.5 rounded-full capitalize ${verificationColor[user.verification_status]}`}>
-                  {user.verification_status}
-                </span>
+        <div className={surfaceCard('overflow-hidden')}>
+          <div className="bg-[radial-gradient(circle_at_top_left,_rgba(15,127,95,0.15),_transparent_36%),linear-gradient(135deg,_rgba(255,255,255,0.94),_rgba(240,247,241,0.94))] -m-6 mb-6 px-6 py-8">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-4">
+                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 text-2xl font-bold text-emerald-700">
+                  {user.full_name?.charAt(0)}
+                </div>
+                <div>
+                  <div className="eyebrow mb-2">Profile</div>
+                  <h2 className="text-2xl font-bold text-slate-950">{user.full_name}</h2>
+                  <div className="mt-1 flex items-center gap-2">
+                    <span className="text-sm capitalize text-slate-500">{user.role}</span>
+                    <span className={`rounded-full px-2 py-0.5 text-xs font-medium capitalize ${verificationColor[user.verification_status]}`}>
+                      {user.verification_status}
+                    </span>
+                  </div>
+                </div>
               </div>
+              {!editing && (
+                <button onClick={() => setEditing(true)} className={buttonStyles({ variant: 'secondary' })}>
+                  Edit Profile
+                </button>
+              )}
             </div>
           </div>
 
           {editing ? (
             <form onSubmit={handleSave} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                <label className="mb-1.5 block text-sm font-medium text-slate-700">Full Name</label>
                 <input
                   type="text"
                   value={form.full_name}
                   onChange={(e) => setForm({ ...form, full_name: e.target.value })}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
+                  className={inputStyles()}
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                <label className="mb-1.5 block text-sm font-medium text-slate-700">Email</label>
                 <input
                   type="email"
                   value={form.email}
                   onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
+                  className={inputStyles()}
                 />
               </div>
-              <div className="flex gap-3">
-                <button type="submit" disabled={saving} className="bg-emerald-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-emerald-700 disabled:opacity-50">
+              <div className="flex flex-wrap gap-3">
+                <button type="submit" disabled={saving} className={buttonStyles()}>
                   {saving ? 'Saving...' : 'Save Changes'}
                 </button>
-                <button type="button" onClick={() => setEditing(false)} className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
+                <button type="button" onClick={() => setEditing(false)} className={buttonStyles({ variant: 'secondary' })}>
                   Cancel
                 </button>
               </div>
             </form>
           ) : (
-            <div className="space-y-3">
-              <div className="flex items-center gap-3 text-gray-600">
-                <Phone className="w-4 h-4 text-gray-400" />
-                <span>{user.phone}</span>
-              </div>
-              <div className="flex items-center gap-3 text-gray-600">
-                <Mail className="w-4 h-4 text-gray-400" />
-                <span>{user.email || 'No email added yet'}</span>
+            <div className="space-y-4">
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="rounded-[1.2rem] bg-slate-50 px-4 py-4">
+                  <div className="mb-2 flex items-center gap-2 text-sm font-medium text-slate-500">
+                    <Phone className="h-4 w-4 text-slate-400" />
+                    Phone
+                  </div>
+                  <div className="text-slate-800">{user.phone}</div>
+                </div>
+                <div className="rounded-[1.2rem] bg-slate-50 px-4 py-4">
+                  <div className="mb-2 flex items-center gap-2 text-sm font-medium text-slate-500">
+                    <Mail className="h-4 w-4 text-slate-400" />
+                    Email
+                  </div>
+                  <div className="text-slate-800">{user.email || 'No email added yet'}</div>
+                </div>
               </div>
               {user.national_id && (
-                <div className="text-sm text-gray-500">
-                  National ID: <span className="font-medium text-gray-700">{user.national_id}</span>
+                <div className="text-sm text-slate-500">
+                  National ID: <span className="font-medium text-slate-700">{user.national_id}</span>
                 </div>
               )}
-              <button onClick={() => setEditing(true)} className="mt-4 text-emerald-600 text-sm font-medium hover:text-emerald-700">
-                Edit Profile
-              </button>
             </div>
           )}
         </div>
 
         {(user.verification_status === 'unverified' || user.verification_status === 'rejected') && (
-          <div className="bg-white rounded-2xl border border-gray-200 p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <Shield className="w-5 h-5 text-emerald-600" />
-              <h3 className="font-semibold text-gray-900">Verify Your Identity</h3>
+          <div className={surfaceCard()}>
+            <div className="mb-4 flex items-center gap-3">
+              <Shield className="h-5 w-5 text-emerald-600" />
+              <h3 className="font-semibold text-slate-950">Verify Your Identity</h3>
             </div>
-            <p className="text-sm text-gray-500 mb-4">
+            <p className="mb-4 text-sm text-slate-500">
               Add your email, national ID number, and upload an ID image so admins can review and verify your account.
             </p>
             <form onSubmit={handleVerify} className="space-y-4">
               {!user.email && (
-                <div className="rounded-lg bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-800">
+                <div className={bannerStyles('warning')}>
                   Add your email address in the profile section above before submitting verification or unlocking contact details.
                 </div>
               )}
@@ -190,35 +206,35 @@ export default function Profile() {
                 placeholder="National ID number"
                 value={nationalId}
                 onChange={(e) => setNationalId(e.target.value)}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
+                className={inputStyles()}
                 required
               />
-              <label className="flex items-center justify-center gap-2 border border-dashed border-gray-300 rounded-xl px-4 py-6 text-sm text-gray-600 hover:border-emerald-400 hover:text-emerald-700 transition-colors cursor-pointer">
-                <ImageIcon className="w-4 h-4" />
+              <label className="flex cursor-pointer items-center justify-center gap-2 rounded-[1.25rem] border border-dashed border-slate-300 px-4 py-6 text-sm text-slate-600 transition-colors hover:border-emerald-400 hover:text-emerald-700">
+                <ImageIcon className="h-4 w-4" />
                 <span>{idImage ? 'Replace National ID image' : 'Upload National ID image'}</span>
                 <input type="file" accept="image/*" className="hidden" onChange={handleIdImageChange} />
               </label>
               {idImage && (
-                <img src={idImage} alt="National ID preview" className="w-full max-h-64 object-contain rounded-xl border border-gray-200 bg-gray-50" />
+                <img src={idImage} alt="National ID preview" className="max-h-64 w-full rounded-[1.25rem] border border-slate-200 bg-slate-50 object-contain" />
               )}
-              <button type="submit" disabled={verifying || !user.email || !idImage} className="bg-emerald-600 text-white px-4 py-2.5 rounded-lg font-medium hover:bg-emerald-700 disabled:opacity-50 inline-flex items-center gap-2">
-                {verifying ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Submit Verification'}
+              <button type="submit" disabled={verifying || !user.email || !idImage} className={buttonStyles()}>
+                {verifying ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Submit Verification'}
               </button>
             </form>
           </div>
         )}
 
         {user.verification_status === 'pending' && (
-          <div className="bg-white rounded-2xl border border-amber-200 p-6">
-            <div className="flex items-center gap-3 mb-3 text-amber-800">
-              <Shield className="w-5 h-5" />
+          <div className={surfaceCard()}>
+            <div className="mb-3 flex items-center gap-3 text-amber-800">
+              <BadgeCheck className="h-5 w-5" />
               <h3 className="font-semibold">Verification Pending Review</h3>
             </div>
-            <p className="text-sm text-gray-600 mb-4">
+            <p className="mb-4 text-sm text-slate-600">
               Your National ID details have been submitted. An admin will review them and verify your account once everything checks out.
             </p>
             {user.profile_photo_url && (
-              <img src={user.profile_photo_url} alt="Submitted National ID" className="w-full max-h-64 object-contain rounded-xl border border-gray-200 bg-gray-50" />
+              <img src={user.profile_photo_url} alt="Submitted National ID" className="max-h-64 w-full rounded-[1.25rem] border border-slate-200 bg-slate-50 object-contain" />
             )}
           </div>
         )}

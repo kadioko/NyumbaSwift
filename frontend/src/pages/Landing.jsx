@@ -1,5 +1,20 @@
 import { Link } from 'react-router-dom'
-import { Search, Shield, CreditCard, Users, Building, ArrowRight, Star, TrendingUp, CheckCircle, BadgeCheck, Clock3 } from 'lucide-react'
+import {
+  Search,
+  Shield,
+  CreditCard,
+  Users,
+  Building,
+  ArrowRight,
+  Star,
+  TrendingUp,
+  CheckCircle,
+  BadgeCheck,
+  Clock3,
+  MapPinned,
+  Landmark,
+  Sparkles,
+} from 'lucide-react'
 
 const stats = [
   { label: 'Verified Listings', value: '300K+', icon: Building },
@@ -11,20 +26,20 @@ const stats = [
 const steps = [
   {
     step: '01',
-    title: 'Search Verified Listings',
-    desc: 'Browse properties verified by our team. Filter by district, price, bedrooms, and more. Premium listings from trusted landlords.',
+    title: 'Search verified listings',
+    desc: 'Browse properties reviewed by our team. Filter by district, price, bedrooms, and trust signals that help you shortlist faster.',
     icon: Search,
   },
   {
     step: '02',
-    title: 'Unlock & Connect',
-    desc: 'Found your place? Unlock the landlord contact for TZS 5,000 and move the conversation forward faster.',
+    title: 'Unlock and connect',
+    desc: 'Found your place? Unlock the landlord contact for TZS 5,000 and move the conversation forward without guesswork.',
     icon: Shield,
   },
   {
     step: '03',
-    title: 'Pay Rent Digitally',
-    desc: 'Track payments, receipts, and rent history in one place without juggling chats and manual follow-ups.',
+    title: 'Pay rent digitally',
+    desc: 'Track payments, receipts, and rent history in one place without juggling chats, calls, and manual follow-ups.',
     icon: CreditCard,
   },
 ]
@@ -36,78 +51,108 @@ const landlordBenefits = [
   'Premium listing boost for faster occupancy',
 ]
 
+const districts = ['Masaki', 'Mbezi Beach', 'Kijitonyama', 'Mikocheni']
+
+const highlightCards = [
+  {
+    title: 'Verified identities',
+    desc: 'Admins review submitted identity information to reduce fake listings and wasted time.',
+    icon: BadgeCheck,
+  },
+  {
+    title: 'Digital workflows',
+    desc: 'Unlocks, receipts, rent tracking, and account history live in one experience.',
+    icon: CreditCard,
+  },
+  {
+    title: 'Faster decisions',
+    desc: 'Trust signals help renters and landlords move from browsing to action more confidently.',
+    icon: Clock3,
+  },
+]
+
 export default function Landing() {
   return (
     <div className="min-h-screen">
-      <section className="relative overflow-hidden bg-gradient-to-br from-emerald-700 via-emerald-800 to-emerald-950 text-white">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-20 left-10 h-72 w-72 rounded-full bg-white blur-3xl" />
-          <div className="absolute bottom-16 right-12 h-96 w-96 rounded-full bg-emerald-300 blur-3xl" />
-        </div>
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 lg:py-32">
-          <div className="grid lg:grid-cols-[1.15fr_0.85fr] gap-10 items-center">
+      <section className="relative overflow-hidden px-4 pb-8 pt-5 sm:px-6 lg:px-8">
+        <div className="absolute inset-x-0 top-0 h-[34rem] bg-[radial-gradient(circle_at_top_left,_rgba(15,127,95,0.25),_transparent_40%),radial-gradient(circle_at_top_right,_rgba(211,154,52,0.16),_transparent_26%)]" />
+        <div className="shell-panel relative mx-auto max-w-7xl overflow-hidden rounded-[2rem] px-6 py-16 text-white sm:px-8 lg:px-12 lg:py-20">
+          <div className="absolute inset-0 opacity-20">
+            <div className="absolute -left-12 top-14 h-56 w-56 rounded-full bg-emerald-300 blur-3xl" />
+            <div className="absolute bottom-0 right-8 h-72 w-72 rounded-full bg-amber-300 blur-3xl" />
+            <div className="absolute inset-y-0 right-1/3 w-px bg-white/10" />
+          </div>
+
+          <div className="relative grid items-center gap-10 lg:grid-cols-[1.12fr_0.88fr]">
             <div>
-              <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 text-sm backdrop-blur-sm mb-6">
-                <Shield className="w-4 h-4 text-emerald-300" />
-                <span>Dar es Salaam's verified rental marketplace</span>
+              <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/8 px-4 py-1.5 text-sm backdrop-blur-sm">
+                <Shield className="h-4 w-4 text-emerald-300" />
+                <span>Dar es Salaam&apos;s verified rental marketplace</span>
               </div>
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight mb-6">
-                Find your next home
-                <span className="block text-emerald-300">with more trust and less stress</span>
+              <h1 className="text-balance mb-6 max-w-3xl text-4xl font-bold leading-[0.95] sm:text-5xl lg:text-7xl">
+                Renting that feels
+                <span className="block text-emerald-300">clear, trusted, and modern.</span>
               </h1>
-              <p className="text-lg sm:text-xl text-emerald-100 max-w-2xl leading-relaxed mb-8">
-                Verified listings, identity-reviewed renters, trusted agents, and digital rent collection — built for how Dar actually rents.
+              <p className="mb-8 max-w-2xl text-lg leading-relaxed text-emerald-50/88 sm:text-xl">
+                Verified listings, identity-reviewed renters, trusted agents, and digital rent collection built for how Dar actually rents.
               </p>
-              <div className="flex flex-col sm:flex-row gap-4 mb-8">
-                <Link to="/properties" className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-6 py-3.5 text-lg font-semibold text-emerald-800 hover:bg-emerald-50 transition-colors shadow-sm">
-                  <Search className="w-5 h-5" />
+              <div className="mb-10 flex flex-col gap-4 sm:flex-row">
+                <Link to="/properties" className="inline-flex items-center justify-center gap-2 rounded-2xl bg-white px-6 py-3.5 text-lg font-semibold text-emerald-900 shadow-[0_20px_40px_rgba(255,255,255,0.12)] transition-transform hover:-translate-y-0.5 hover:bg-emerald-50">
+                  <Search className="h-5 w-5" />
                   Browse Rentals
                 </Link>
-                <Link to="/register" className="inline-flex items-center justify-center gap-2 rounded-xl border border-emerald-400 bg-emerald-600 px-6 py-3.5 text-lg font-semibold text-white hover:bg-emerald-500 transition-colors">
+                <Link to="/register" className="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/15 bg-emerald-500/18 px-6 py-3.5 text-lg font-semibold text-white transition-transform hover:-translate-y-0.5 hover:bg-emerald-500/24">
                   List Your Property
-                  <ArrowRight className="w-5 h-5" />
+                  <ArrowRight className="h-5 w-5" />
                 </Link>
               </div>
-              <div className="grid sm:grid-cols-3 gap-3 max-w-2xl">
-                {[{ title: 'Verified identities', desc: 'Admins can review ID submissions for extra trust.', icon: BadgeCheck }, { title: 'Digital workflows', desc: 'Unlocks, receipts, and rent flow in-app.', icon: CreditCard }, { title: 'Faster decisions', desc: 'Less guesswork, cleaner signals, quicker move-ins.', icon: Clock3 }].map(({ title, desc, icon }) => {
-                  const Icon = icon
-                  return (
-                    <div key={title} className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm">
-                      <Icon className="w-5 h-5 text-emerald-300 mb-3" />
-                      <div className="text-sm font-semibold text-white mb-1">{title}</div>
-                      <div className="text-sm text-emerald-100/80 leading-relaxed">{desc}</div>
-                    </div>
-                  )
-                })}
+              <div className="flex flex-wrap items-center gap-3">
+                {districts.map((district) => (
+                  <span key={district} className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/6 px-3 py-2 text-sm text-emerald-50/88">
+                    <MapPinned className="h-3.5 w-3.5 text-emerald-300" />
+                    {district}
+                  </span>
+                ))}
               </div>
             </div>
 
-            <div>
-              <div className="rounded-3xl border border-white/10 bg-white/10 p-5 backdrop-blur-xl shadow-2xl">
-                <div className="rounded-2xl bg-white p-5 text-gray-900 shadow-lg">
-                  <div className="flex items-center justify-between mb-4">
-                    <div>
-                      <div className="text-sm text-gray-500">Marketplace snapshot</div>
-                      <div className="text-xl font-bold">Today on NyumbaSwift</div>
-                    </div>
-                    <div className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700">
-                      Live overview
-                    </div>
+            <div className="grid gap-4 lg:pl-4">
+              <div className="rounded-[1.75rem] border border-white/12 bg-white/9 p-5 backdrop-blur-xl shadow-2xl">
+                <div className="mb-4 flex items-center justify-between">
+                  <div>
+                    <div className="text-sm uppercase tracking-[0.18em] text-emerald-100/70">Marketplace snapshot</div>
+                    <div className="text-2xl font-bold">Today on NyumbaSwift</div>
                   </div>
-                  <div className="space-y-3">
-                    {[['Verified landlord listings', '128'], ['Pending renter verifications', '12'], ['Unlocks completed this week', '43']].map(([label, value]) => (
-                      <div key={label} className="flex items-center justify-between rounded-xl border border-gray-100 bg-gray-50 px-4 py-3">
-                        <span className="text-sm text-gray-600">{label}</span>
-                        <span className="text-sm font-semibold text-gray-900">{value}</span>
-                      </div>
-                    ))}
+                  <div className="rounded-full bg-emerald-300/16 px-3 py-1 text-xs font-medium text-emerald-100">
+                    Live overview
                   </div>
-                  <div className="mt-5 rounded-2xl border border-emerald-100 bg-emerald-50 p-4">
-                    <div className="text-sm font-medium text-emerald-700 mb-1">Built for trust-first renting</div>
-                    <div className="text-sm leading-relaxed text-gray-600">
-                      Cleaner property presentation, better screening, and faster renter-landlord connection without relying on scattered chats.
+                </div>
+                <div className="space-y-3">
+                  {[['Verified landlord listings', '128'], ['Pending renter verifications', '12'], ['Unlocks completed this week', '43']].map(([label, value]) => (
+                    <div key={label} className="flex items-center justify-between rounded-2xl border border-white/8 bg-slate-950/22 px-4 py-3">
+                      <span className="text-sm text-emerald-50/80">{label}</span>
+                      <span className="text-sm font-semibold text-white">{value}</span>
                     </div>
-                  </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="rounded-[1.5rem] border border-white/10 bg-white/7 p-5">
+                  <Sparkles className="mb-3 h-5 w-5 text-amber-300" />
+                  <div className="text-sm text-emerald-100/70">Trust layer</div>
+                  <div className="mt-1 text-lg font-semibold">Verification-first discovery</div>
+                  <p className="mt-2 text-sm leading-relaxed text-emerald-50/78">
+                    Cleaner property presentation and stronger renter confidence before the first call.
+                  </p>
+                </div>
+                <div className="rounded-[1.5rem] border border-white/10 bg-white/7 p-5">
+                  <Landmark className="mb-3 h-5 w-5 text-emerald-300" />
+                  <div className="text-sm text-emerald-100/70">Landlord ops</div>
+                  <div className="mt-1 text-lg font-semibold">Payments and portfolio visibility</div>
+                  <p className="mt-2 text-sm leading-relaxed text-emerald-50/78">
+                    Manage listings, occupancy, and rent flow without relying on scattered chats.
+                  </p>
                 </div>
               </div>
             </div>
@@ -115,16 +160,33 @@ export default function Landing() {
         </div>
       </section>
 
-      <section className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <section className="px-4 pb-10 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl">
+          <div className="grid gap-3 rounded-[1.75rem] border border-white/70 bg-white/78 p-4 shadow-[0_16px_40px_rgba(17,36,25,0.08)] backdrop-blur-xl md:grid-cols-3">
+            {highlightCards.map(({ title, desc, icon }) => {
+              const Icon = icon
+              return (
+                <div key={title} className="rounded-[1.25rem] border border-slate-100 bg-gradient-to-br from-white to-emerald-50/65 p-5">
+                  <Icon className="mb-4 h-5 w-5 text-emerald-700" />
+                  <div className="mb-2 text-sm font-semibold uppercase tracking-[0.12em] text-slate-500">{title}</div>
+                  <div className="text-sm leading-relaxed text-slate-600">{desc}</div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      </section>
+
+      <section className="border-y border-slate-200/80 bg-white/70 backdrop-blur">
+        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
             {stats.map(({ label, value, icon }) => {
               const Icon = icon
               return (
-                <div key={label} className="rounded-2xl border border-gray-100 bg-gray-50/80 px-4 py-5 text-center">
-                  <Icon className="w-6 h-6 text-emerald-600 mx-auto mb-2" />
-                  <div className="text-2xl font-bold text-gray-900">{value}</div>
-                  <div className="text-sm text-gray-500">{label}</div>
+                <div key={label} className="rounded-[1.4rem] border border-slate-100 bg-white/85 px-4 py-5 text-center shadow-sm">
+                  <Icon className="mx-auto mb-2 h-6 w-6 text-emerald-700" />
+                  <div className="text-2xl font-bold text-slate-950">{value}</div>
+                  <div className="text-sm text-slate-500">{label}</div>
                 </div>
               )
             })}
@@ -132,25 +194,28 @@ export default function Landing() {
         </div>
       </section>
 
-      <section className="bg-gray-50 py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-3">How NyumbaSwift Works</h2>
-            <p className="max-w-xl mx-auto text-gray-500">Simple, transparent, and built for Dar's rental market.</p>
+      <section className="py-20">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="mb-12 text-center">
+            <span className="eyebrow mb-4">How it works</span>
+            <h2 className="mx-auto mb-3 max-w-3xl text-3xl font-bold text-slate-950 sm:text-4xl">A simpler path from search to signed rental</h2>
+            <p className="mx-auto max-w-2xl text-slate-500">
+              Designed for the real rhythms of Dar&apos;s market, from discovery to contact unlock to payment follow-through.
+            </p>
           </div>
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid gap-8 md:grid-cols-3">
             {steps.map(({ step, title, desc, icon }) => {
               const Icon = icon
               return (
-                <div key={step} className="rounded-2xl border border-gray-200 bg-white p-8 transition-all hover:border-emerald-200 hover:shadow-lg">
+                <div key={step} className="shell-card rounded-[1.6rem] p-8 transition-all hover:-translate-y-1 hover:border-emerald-200">
                   <div className="mb-4 flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-100">
-                      <Icon className="w-5 h-5 text-emerald-600" />
+                    <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-100">
+                      <Icon className="h-5 w-5 text-emerald-700" />
                     </div>
-                    <span className="text-sm font-bold text-emerald-600">{step}</span>
+                    <span className="text-sm font-bold uppercase tracking-[0.16em] text-emerald-700">{step}</span>
                   </div>
-                  <h3 className="mb-2 text-lg font-semibold text-gray-900">{title}</h3>
-                  <p className="leading-relaxed text-gray-500">{desc}</p>
+                  <h3 className="mb-2 text-xl font-semibold text-slate-950">{title}</h3>
+                  <p className="leading-relaxed text-slate-600">{desc}</p>
                 </div>
               )
             })}
@@ -158,53 +223,54 @@ export default function Landing() {
         </div>
       </section>
 
-      <section className="bg-white py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
+      <section className="bg-white/72 py-20 backdrop-blur">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="grid items-center gap-12 lg:grid-cols-2">
             <div>
-              <div className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-4 py-1.5 text-sm font-medium text-emerald-700 mb-4">
+              <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-emerald-50 px-4 py-1.5 text-sm font-medium text-emerald-700">
                 <TrendingUp className="w-4 h-4" />
                 For Landlords
               </div>
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">Collect rent without the headache</h2>
-              <p className="mb-6 leading-relaxed text-gray-500">
+              <h2 className="mb-4 text-3xl font-bold text-slate-950 sm:text-4xl">Collect rent without the headache</h2>
+              <p className="mb-6 leading-relaxed text-slate-600">
                 Stop chasing tenants for rent. NyumbaSwift supports digital collection, cleaner communication, and a stronger trust layer across your portfolio.
               </p>
               <ul className="mb-8 space-y-3">
                 {landlordBenefits.map((item) => (
                   <li key={item} className="flex items-start gap-3">
                     <CheckCircle className="mt-0.5 h-5 w-5 shrink-0 text-emerald-500" />
-                    <span className="text-gray-700">{item}</span>
+                    <span className="text-slate-700">{item}</span>
                   </li>
                 ))}
               </ul>
-              <Link to="/register" className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-6 py-3 text-white font-semibold hover:bg-emerald-700 transition-colors">
+              <Link to="/register" className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-700 px-6 py-3 text-white font-semibold shadow-[0_16px_28px_rgba(15,127,95,0.24)] transition-transform hover:-translate-y-0.5">
                 Start Managing Properties
                 <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
-            <div className="rounded-2xl bg-gradient-to-br from-emerald-50 to-emerald-100 p-8">
-              <div className="mb-4 rounded-xl bg-white p-6 shadow-sm">
-                <div className="mb-1 text-sm text-gray-500">Monthly Rent Collected</div>
-                <div className="text-3xl font-bold text-gray-900">TZS 12,400,000</div>
-                <div className="mt-1 text-sm text-emerald-600">+23% from last month</div>
+
+            <div className="rounded-[2rem] bg-gradient-to-br from-emerald-900 via-emerald-800 to-teal-950 p-8 text-white shadow-[0_28px_90px_rgba(8,17,13,0.24)]">
+              <div className="mb-4 rounded-[1.4rem] border border-white/10 bg-white/8 p-6">
+                <div className="mb-1 text-sm text-emerald-100/75">Monthly Rent Collected</div>
+                <div className="text-3xl font-bold">TZS 12,400,000</div>
+                <div className="mt-1 text-sm text-emerald-300">+23% from last month</div>
               </div>
               <div className="grid grid-cols-2 gap-4">
-                <div className="rounded-xl bg-white p-4 shadow-sm">
-                  <div className="text-sm text-gray-500">Properties</div>
-                  <div className="text-xl font-bold text-gray-900">8</div>
+                <div className="rounded-[1.2rem] border border-white/10 bg-white/8 p-4">
+                  <div className="text-sm text-emerald-100/75">Properties</div>
+                  <div className="text-xl font-bold">8</div>
                 </div>
-                <div className="rounded-xl bg-white p-4 shadow-sm">
-                  <div className="text-sm text-gray-500">Occupancy</div>
-                  <div className="text-xl font-bold text-emerald-600">94%</div>
+                <div className="rounded-[1.2rem] border border-white/10 bg-white/8 p-4">
+                  <div className="text-sm text-emerald-100/75">Occupancy</div>
+                  <div className="text-xl font-bold text-emerald-300">94%</div>
                 </div>
-                <div className="rounded-xl bg-white p-4 shadow-sm">
-                  <div className="text-sm text-gray-500">Active Tenants</div>
-                  <div className="text-xl font-bold text-gray-900">7</div>
+                <div className="rounded-[1.2rem] border border-white/10 bg-white/8 p-4">
+                  <div className="text-sm text-emerald-100/75">Active Tenants</div>
+                  <div className="text-xl font-bold">7</div>
                 </div>
-                <div className="rounded-xl bg-white p-4 shadow-sm">
-                  <div className="text-sm text-gray-500">Platform Fee</div>
-                  <div className="text-xl font-bold text-gray-900">1.5%</div>
+                <div className="rounded-[1.2rem] border border-white/10 bg-white/8 p-4">
+                  <div className="text-sm text-emerald-100/75">Platform Fee</div>
+                  <div className="text-xl font-bold">1.5%</div>
                 </div>
               </div>
             </div>
@@ -212,14 +278,14 @@ export default function Landing() {
         </div>
       </section>
 
-      <section className="bg-gray-900 py-20 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <section className="px-4 pb-20 pt-8 sm:px-6 lg:px-8">
+        <div className="shell-panel mx-auto max-w-7xl rounded-[2rem] px-6 py-16 text-center text-white sm:px-8">
           <Users className="mx-auto mb-4 h-12 w-12 text-emerald-400" />
-          <h2 className="mb-4 text-3xl font-bold">Are you a broker?</h2>
-          <p className="mx-auto mb-8 max-w-xl leading-relaxed text-gray-400">
+          <h2 className="mb-4 text-3xl font-bold sm:text-4xl">Are you a broker?</h2>
+          <p className="mx-auto mb-8 max-w-2xl leading-relaxed text-emerald-50/70">
             Turn market knowledge into verified income. Become a NyumbaSwift Verified Agent and get better visibility, cleaner workflows, and stronger trust with renters and landlords.
           </p>
-          <Link to="/agents/apply" className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-8 py-3.5 text-lg font-semibold text-white hover:bg-emerald-500 transition-colors">
+          <Link to="/agents/apply" className="inline-flex items-center gap-2 rounded-2xl bg-white px-8 py-3.5 text-lg font-semibold text-emerald-900 transition-transform hover:-translate-y-0.5 hover:bg-emerald-50">
             Apply as Verified Agent
             <ArrowRight className="w-5 h-5" />
           </Link>

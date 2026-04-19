@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
-import { CreditCard, Calendar, Home, Loader2, AlertCircle, CheckCircle } from 'lucide-react'
+import { CreditCard, Calendar, Home, Loader2, AlertCircle, CheckCircle, Wallet, ArrowRightLeft } from 'lucide-react'
 import { rentals as rentalApi } from '../services/api'
+import { bannerStyles, buttonStyles, inputStyles, skeletonBlock, surfaceCard } from '../components/ui'
 
 export default function MyRentals() {
   const [myRentals, setMyRentals] = useState([])
@@ -34,6 +35,8 @@ export default function MyRentals() {
   useEffect(() => {
     loadRentalData()
   }, [loadRentalData])
+
+  const currentMonth = new Date().toISOString().slice(0, 7)
 
   const handlePay = async (e) => {
     e.preventDefault()
@@ -76,41 +79,81 @@ export default function MyRentals() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="w-8 h-8 text-emerald-600 animate-spin" />
-      </div>
-    )
-  }
-
-  const currentMonth = new Date().toISOString().slice(0, 7)
-
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <h1 className="text-2xl font-bold text-gray-900">My Rentals</h1>
-          <p className="text-gray-500 mt-0.5">Manage your rentals and pay rent</p>
-          <div className="flex gap-1 mt-6 -mb-px">
-            {['rentals', 'pay rent', 'history'].map((t) => (
-              <button
-                key={t}
-                onClick={() => setTab(t)}
-                className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors capitalize ${
-                  tab === t ? 'border-emerald-600 text-emerald-600' : 'border-transparent text-gray-500 hover:text-gray-700'
-                }`}
-              >
-                {t}
-              </button>
+      <div className="min-h-screen">
+        <div className="px-4 pt-5 sm:px-6 lg:px-8">
+          <div className="shell-card mx-auto max-w-4xl overflow-hidden rounded-[2rem] p-6">
+            <div className={skeletonBlock('mb-4 h-8 w-48')} />
+            <div className={skeletonBlock('h-4 w-64')} />
+            <div className="mt-6 flex gap-2">
+              <div className={skeletonBlock('h-10 w-24 rounded-full')} />
+              <div className={skeletonBlock('h-10 w-24 rounded-full')} />
+              <div className={skeletonBlock('h-10 w-24 rounded-full')} />
+            </div>
+          </div>
+        </div>
+        <div className="mx-auto max-w-4xl px-4 py-6 sm:px-6 lg:px-8">
+          <div className="space-y-4">
+            {Array.from({ length: 3 }).map((_, index) => (
+              <div key={index} className={surfaceCard('p-5')}>
+                <div className="mb-3 flex items-center justify-between">
+                  <div className={skeletonBlock('h-5 w-28')} />
+                  <div className={skeletonBlock('h-6 w-16 rounded-full')} />
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className={skeletonBlock('h-14')} />
+                  <div className={skeletonBlock('h-14')} />
+                </div>
+              </div>
             ))}
           </div>
         </div>
       </div>
+    )
+  }
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+  const activeRentals = myRentals.filter((rental) => rental.status === 'active')
+
+  return (
+    <div className="min-h-screen">
+      <div className="px-4 pt-5 sm:px-6 lg:px-8">
+        <div className="shell-card mx-auto max-w-4xl overflow-hidden rounded-[2rem]">
+          <div className="bg-[radial-gradient(circle_at_top_left,_rgba(15,127,95,0.15),_transparent_36%),radial-gradient(circle_at_top_right,_rgba(211,154,52,0.12),_transparent_20%),linear-gradient(135deg,_rgba(255,255,255,0.94),_rgba(240,247,241,0.94))] px-4 py-6 sm:px-6 lg:px-8">
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+              <div>
+                <div className="eyebrow mb-3">Renter workspace</div>
+                <h1 className="text-3xl font-bold text-slate-950">My Rentals</h1>
+                <p className="mt-1 text-slate-600">Manage your rentals and pay rent</p>
+              </div>
+              <div className="rounded-[1.4rem] border border-white/80 bg-white/85 px-5 py-4 shadow-sm">
+                <div className="text-sm text-slate-500">Active rentals</div>
+                <div className="text-3xl font-bold text-slate-950">{activeRentals.length}</div>
+              </div>
+            </div>
+
+            <div className="mt-6 flex gap-2 overflow-x-auto">
+              {['rentals', 'pay rent', 'history'].map((t) => (
+                <button
+                  key={t}
+                  onClick={() => setTab(t)}
+                  className={`rounded-full px-4 py-2 text-sm font-semibold capitalize transition-colors ${
+                    tab === t
+                      ? 'bg-slate-950 text-white'
+                      : 'bg-white/85 text-slate-600 hover:bg-emerald-50 hover:text-emerald-700'
+                  }`}
+                >
+                  {t}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="mx-auto max-w-4xl px-4 py-6 sm:px-6 lg:px-8">
         {error && (
-          <div className="flex items-center justify-between gap-3 bg-red-50 text-red-700 px-4 py-3 rounded-lg mb-6 text-sm border border-red-100">
+          <div className={bannerStyles('error', 'mb-6 justify-between')}>
             <div className="flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 shrink-0" />
+              <AlertCircle className="h-4 w-4 shrink-0" />
               <span>{error}</span>
             </div>
             <button type="button" onClick={loadRentalData} className="font-medium text-red-700 hover:text-red-800">
@@ -120,8 +163,8 @@ export default function MyRentals() {
         )}
 
         {success && (
-          <div className="flex items-center gap-2 bg-emerald-50 text-emerald-700 px-4 py-3 rounded-lg mb-6 text-sm border border-emerald-100">
-            <CheckCircle className="w-4 h-4 shrink-0" />
+          <div className={bannerStyles('success', 'mb-6')}>
+            <CheckCircle className="h-4 w-4 shrink-0" />
             <span>{success}</span>
           </div>
         )}
@@ -129,28 +172,31 @@ export default function MyRentals() {
         {tab === 'rentals' && (
           <div className="space-y-4">
             {myRentals.length === 0 ? (
-              <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
-                <Home className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                <h3 className="font-semibold text-gray-700">No active rentals</h3>
-                <p className="text-gray-500 mt-1">Your rental agreements will appear here</p>
+              <div className={surfaceCard('py-12 text-center')}>
+                <Home className="mx-auto mb-3 h-12 w-12 text-slate-300" />
+                <h3 className="font-semibold text-slate-700">No active rentals</h3>
+                <p className="mt-1 text-slate-500">Your rental agreements will appear here.</p>
+                <div className="mt-5 rounded-[1.2rem] bg-slate-50 px-4 py-4 text-sm text-slate-500">
+                  When you sign a rental through NyumbaSwift, payment tracking and history will show up automatically.
+                </div>
               </div>
             ) : (
-              myRentals.map((r) => (
-                <div key={r.id} className="bg-white rounded-xl border border-gray-200 p-5">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="font-semibold text-gray-900">Rental #{r.id}</span>
-                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                      r.status === 'active' ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-600'
+              myRentals.map((rental) => (
+                <div key={rental.id} className={surfaceCard('p-5')}>
+                  <div className="mb-3 flex items-center justify-between">
+                    <span className="font-semibold text-slate-950">Rental #{rental.id}</span>
+                    <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                      rental.status === 'active' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600'
                     }`}>
-                      {r.status}
+                      {rental.status}
                     </span>
                   </div>
-                  <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
-                    <div>
-                      <span className="text-gray-400">Monthly Rent:</span> TZS {r.monthly_rent?.toLocaleString()}
+                  <div className="grid gap-3 text-sm text-slate-600 sm:grid-cols-2">
+                    <div className="rounded-xl bg-slate-50 px-4 py-3">
+                      <span className="text-slate-400">Monthly Rent:</span> TZS {rental.monthly_rent?.toLocaleString()}
                     </div>
-                    <div>
-                      <span className="text-gray-400">Started:</span> {new Date(r.start_date).toLocaleDateString()}
+                    <div className="rounded-xl bg-slate-50 px-4 py-3">
+                      <span className="text-slate-400">Started:</span> {new Date(rental.start_date).toLocaleDateString()}
                     </div>
                   </div>
                 </div>
@@ -160,24 +206,24 @@ export default function MyRentals() {
         )}
 
         {tab === 'pay rent' && (
-          <div className="max-w-md mx-auto">
-            {!payResult && myRentals.filter((r) => r.status === 'active').length === 0 ? (
-              <div className="bg-white rounded-xl border border-gray-200 p-10 text-center">
-                <CreditCard className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                <h3 className="font-semibold text-gray-700 mb-1">No active rentals available for payment</h3>
-                <p className="text-gray-500">Once you have an active rental, you&apos;ll be able to initiate rent payments here.</p>
+          <div className="mx-auto max-w-md">
+            {!payResult && activeRentals.length === 0 ? (
+              <div className={surfaceCard('py-10 text-center')}>
+                <Wallet className="mx-auto mb-3 h-12 w-12 text-slate-300" />
+                <h3 className="mb-1 font-semibold text-slate-700">No active rentals available for payment</h3>
+                <p className="text-slate-500">Once you have an active rental, you&apos;ll be able to initiate rent payments here.</p>
               </div>
             ) : payResult ? (
-              <div className="bg-white rounded-xl border border-gray-200 p-6">
-                <div className="text-center mb-6">
-                  <CreditCard className="w-10 h-10 text-emerald-600 mx-auto mb-2" />
-                  <h3 className="font-semibold text-gray-900">Payment Initiated</h3>
-                  <p className="text-sm text-gray-500 mt-1">Complete payment via M-Pesa, then enter the reference</p>
+              <div className={surfaceCard()}>
+                <div className="mb-6 text-center">
+                  <ArrowRightLeft className="mx-auto mb-2 h-10 w-10 text-emerald-600" />
+                  <h3 className="font-semibold text-slate-950">Payment Initiated</h3>
+                  <p className="mt-1 text-sm text-slate-500">Complete payment via M-Pesa, then enter the reference.</p>
                 </div>
-                <div className="bg-gray-50 rounded-lg p-4 mb-4 space-y-2 text-sm">
-                  <div className="flex justify-between"><span className="text-gray-500">Amount</span><span className="font-medium">TZS {payResult.amount?.toLocaleString()}</span></div>
-                  <div className="flex justify-between"><span className="text-gray-500">Platform Fee</span><span className="font-medium">TZS {payResult.platform_fee?.toLocaleString()}</span></div>
-                  <div className="flex justify-between border-t pt-2"><span className="text-gray-500">Landlord Receives</span><span className="font-bold text-emerald-600">TZS {payResult.landlord_payout?.toLocaleString()}</span></div>
+                <div className="mb-4 space-y-2 rounded-[1.2rem] bg-slate-50 p-4 text-sm">
+                  <div className="flex justify-between"><span className="text-slate-500">Amount</span><span className="font-medium">TZS {payResult.amount?.toLocaleString()}</span></div>
+                  <div className="flex justify-between"><span className="text-slate-500">Platform Fee</span><span className="font-medium">TZS {payResult.platform_fee?.toLocaleString()}</span></div>
+                  <div className="flex justify-between border-t border-slate-200 pt-2"><span className="text-slate-500">Landlord Receives</span><span className="font-bold text-emerald-700">TZS {payResult.landlord_payout?.toLocaleString()}</span></div>
                 </div>
                 <div className="space-y-3">
                   <input
@@ -185,52 +231,44 @@ export default function MyRentals() {
                     placeholder="M-Pesa Reference (e.g. MPESA123ABC)"
                     value={confirmRef}
                     onChange={(e) => setConfirmRef(e.target.value.toUpperCase())}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
+                    className={inputStyles()}
                   />
-                  <button
-                    onClick={handleConfirm}
-                    disabled={confirming || !confirmRef}
-                    className="w-full bg-emerald-600 text-white py-2.5 rounded-lg font-semibold hover:bg-emerald-700 disabled:opacity-50"
-                  >
+                  <button onClick={handleConfirm} disabled={confirming || !confirmRef} className={buttonStyles({ fullWidth: true })}>
                     {confirming ? 'Confirming...' : 'Confirm Payment'}
                   </button>
                 </div>
               </div>
             ) : (
-              <form onSubmit={handlePay} className="bg-white rounded-xl border border-gray-200 p-6 space-y-5">
-                <div className="text-center mb-2">
-                  <CreditCard className="w-10 h-10 text-emerald-600 mx-auto mb-2" />
-                  <h3 className="font-semibold text-gray-900">Pay Rent</h3>
+              <form onSubmit={handlePay} className={surfaceCard('space-y-5')}>
+                <div className="mb-2 text-center">
+                  <CreditCard className="mx-auto mb-2 h-10 w-10 text-emerald-600" />
+                  <h3 className="font-semibold text-slate-950">Pay Rent</h3>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Rental</label>
+                  <label className="mb-1.5 block text-sm font-medium text-slate-700">Rental</label>
                   <select
                     value={payForm.rental_id}
                     onChange={(e) => setPayForm({ ...payForm, rental_id: e.target.value })}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-emerald-500 outline-none"
+                    className={inputStyles()}
                     required
                   >
                     <option value="">Select rental</option>
-                    {myRentals.filter((r) => r.status === 'active').map((r) => (
-                      <option key={r.id} value={r.id}>Rental #{r.id} — TZS {r.monthly_rent?.toLocaleString()}/mo</option>
+                    {activeRentals.map((rental) => (
+                      <option key={rental.id} value={rental.id}>Rental #{rental.id} - TZS {rental.monthly_rent?.toLocaleString()}/mo</option>
                     ))}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Payment Month</label>
+                  <label className="mb-1.5 block text-sm font-medium text-slate-700">Payment Month</label>
                   <input
                     type="month"
                     value={payForm.payment_month || currentMonth}
                     onChange={(e) => setPayForm({ ...payForm, payment_month: e.target.value })}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
+                    className={inputStyles()}
                     required
                   />
                 </div>
-                <button
-                  type="submit"
-                  disabled={paying || myRentals.filter((r) => r.status === 'active').length === 0}
-                  className="w-full bg-emerald-600 text-white py-2.5 rounded-lg font-semibold hover:bg-emerald-700 disabled:opacity-50"
-                >
+                <button type="submit" disabled={paying || activeRentals.length === 0} className={buttonStyles({ fullWidth: true })}>
                   {paying ? 'Processing...' : 'Initiate Payment'}
                 </button>
               </form>
@@ -241,24 +279,25 @@ export default function MyRentals() {
         {tab === 'history' && (
           <div className="space-y-3">
             {payments.length === 0 ? (
-              <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
-                <Calendar className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                <h3 className="font-semibold text-gray-700">No payment history</h3>
+              <div className={surfaceCard('py-12 text-center')}>
+                <Calendar className="mx-auto mb-3 h-12 w-12 text-slate-300" />
+                <h3 className="font-semibold text-slate-700">No payment history</h3>
+                <p className="mt-1 text-slate-500">Completed and pending rent payments will show up here once you start paying through the platform.</p>
               </div>
             ) : (
-              payments.map((p) => (
-                <div key={p.id} className="bg-white rounded-xl border border-gray-200 p-4 flex items-center justify-between">
+              payments.map((payment) => (
+                <div key={payment.id} className={surfaceCard('flex items-center justify-between p-4')}>
                   <div>
-                    <div className="font-medium text-gray-900">TZS {p.amount?.toLocaleString()}</div>
-                    <div className="text-sm text-gray-500">{p.payment_month} &middot; {p.mpesa_reference || 'Pending'}</div>
+                    <div className="font-medium text-slate-900">TZS {payment.amount?.toLocaleString()}</div>
+                    <div className="text-sm text-slate-500">{payment.payment_month} &middot; {payment.mpesa_reference || 'Pending'}</div>
                   </div>
-                  <span className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full ${
-                    p.status === 'completed' ? 'bg-emerald-100 text-emerald-700' :
-                    p.status === 'pending' ? 'bg-amber-100 text-amber-700' :
-                    'bg-gray-100 text-gray-600'
+                  <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${
+                    payment.status === 'completed' ? 'bg-emerald-100 text-emerald-700' :
+                    payment.status === 'pending' ? 'bg-amber-100 text-amber-700' :
+                    'bg-slate-100 text-slate-600'
                   }`}>
-                    {p.status === 'completed' && <CheckCircle className="w-3 h-3" />}
-                    {p.status}
+                    {payment.status === 'completed' && <CheckCircle className="h-3 w-3" />}
+                    {payment.status}
                   </span>
                 </div>
               ))
