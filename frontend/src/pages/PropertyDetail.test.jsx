@@ -87,7 +87,7 @@ describe('PropertyDetail unlock UX', () => {
     renderPropertyDetail({ id: 3, role: 'renter', full_name: 'Renter User' })
 
     expect(await screen.findByText('Payment Pending')).toBeInTheDocument()
-    expect(screen.getByText(/Approve the mobile money prompt on your phone/i)).toBeInTheDocument()
+    expect(screen.getByText(/Approve the nTZS mobile money prompt on your phone/i)).toBeInTheDocument()
   })
 
   it('reveals the landlord contact when the unlock is completed', async () => {

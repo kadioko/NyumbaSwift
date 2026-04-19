@@ -310,7 +310,7 @@ export default function PropertyDetail() {
                     Payment Pending
                   </div>
                   <p className="text-sm leading-relaxed text-amber-700">
-                    Approve the mobile money prompt on your phone. This page checks automatically and will reveal the landlord contact once Snippe confirms the payment.
+                    Approve the nTZS mobile money prompt on your phone. This page checks automatically and will reveal the landlord contact once the payment webhook completes.
                   </p>
                 </div>
               ) : user ? (

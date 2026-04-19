@@ -25,7 +25,7 @@ from app.schemas.rental import (
     RentPaymentCreate,
     RentPaymentResponse,
 )
-from app.services.snippe import SnippeError, create_mobile_payment, get_payment_status, verify_webhook_signature
+from app.services.ntzs import NTZSError, create_mobile_payment, get_payment_status, verify_webhook_signature
 
 router = APIRouter(prefix="/rentals", tags=["Rentals & Payments"])
 
@@ -180,7 +180,7 @@ async def initiate_rent_payment(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Tenant initiates monthly rent payment via M-Pesa."""
+    """Tenant initiates monthly rent payment via nTZS mobile money."""
     enforce_rate_limit(request, scope="rentals:initiate_payment", limit=5, window_seconds=300, identifier=str(current_user.id))
     rental = db.query(Rental).filter(
         Rental.id == data.rental_id, Rental.tenant_id == current_user.id
@@ -232,10 +232,10 @@ async def initiate_rent_payment(
                 "rental_id": str(rental.id),
                 "tenant_id": str(current_user.id),
                 "purpose": "rent_payment",
-                "callback_url": f"{settings.PUBLIC_BASE_URL}/api/v1/rentals/webhooks/snippe",
+                "callback_url": f"{settings.PUBLIC_BASE_URL}/api/v1/rentals/webhooks/ntzs",
             },
         )
-    except SnippeError as exc:
+    except NTZSError as exc:
         payment.status = PaymentStatus.FAILED
         payment.notes = str(exc)
         db.commit()
@@ -255,7 +255,7 @@ async def confirm_payment(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Confirm M-Pesa payment (webhook or manual confirmation)."""
+    """Confirm a pending payment, using provider lookup when available."""
     enforce_rate_limit(request, scope="rentals:confirm_payment", limit=8, window_seconds=300, identifier=str(current_user.id))
     payment = (
         db.query(RentPayment)
@@ -272,7 +272,7 @@ async def confirm_payment(
 
     normalized_reference = mpesa_reference.strip().upper()
     if not normalized_reference:
-        raise HTTPException(status_code=400, detail="M-Pesa reference is required")
+        raise HTTPException(status_code=400, detail="Payment reference is required")
 
     duplicate_reference = db.query(RentPayment).filter(
         RentPayment.id != payment.id,
@@ -280,11 +280,11 @@ async def confirm_payment(
         RentPayment.status == PaymentStatus.COMPLETED,
     ).first()
     if duplicate_reference:
-        raise HTTPException(status_code=400, detail="This M-Pesa reference is already in use")
+        raise HTTPException(status_code=400, detail="This payment reference is already in use")
 
     try:
         provider_payment = await get_payment_status(normalized_reference)
-    except SnippeError as exc:
+    except NTZSError as exc:
         raise HTTPException(
             status_code=502,
             detail=f"Unable to verify payment status right now: {exc}",
@@ -293,7 +293,10 @@ async def confirm_payment(
     _update_payment_from_provider(payment, provider_payment, fallback_reference=normalized_reference)
     if payment.status == PaymentStatus.FAILED:
         db.commit()
-        raise HTTPException(status_code=400, detail="Payment could not be confirmed. Please try again after completing the mobile money payment.")
+        raise HTTPException(
+            status_code=400,
+            detail="Payment could not be confirmed yet. Complete the mobile money prompt or wait for webhook confirmation.",
+        )
     db.commit()
     db.refresh(payment)
     return payment
@@ -414,10 +417,10 @@ async def unlock_listing(
                 "property_id": str(data.property_id),
                 "renter_id": str(current_user.id),
                 "purpose": "listing_unlock",
-                "callback_url": f"{settings.PUBLIC_BASE_URL}/api/v1/rentals/webhooks/snippe",
+                "callback_url": f"{settings.PUBLIC_BASE_URL}/api/v1/rentals/webhooks/ntzs",
             },
         )
-    except SnippeError as exc:
+    except NTZSError as exc:
         raise HTTPException(status_code=502, detail=str(exc)) from exc
 
     payment_reference = payment.get("reference") or payment.get("id") or f"unlock-{unlock.id}"
@@ -432,58 +435,48 @@ async def unlock_listing(
     )
 
 
-@router.post("/webhooks/snippe", include_in_schema=False)
-async def snippe_webhook(request: Request, db: Session = Depends(get_db)):
+@router.post("/webhooks/ntzs", include_in_schema=False)
+async def ntzs_webhook(request: Request, db: Session = Depends(get_db)):
     payload = await request.body()
-    signature = request.headers.get("X-Webhook-Signature")
+    signature = request.headers.get("x-ntzs-signature")
     if not verify_webhook_signature(payload, signature):
         raise HTTPException(status_code=401, detail="Invalid webhook signature")
 
     event = await request.json()
     data = event.get("data", {})
-    metadata = data.get("metadata", {})
-    unlock_id = metadata.get("unlock_id")
-    payment_id = metadata.get("payment_id")
-    reference = data.get("reference")
-    external_reference = data.get("external_reference")
     event_type = event.get("type")
+    deposit_id = str(data.get("depositId") or "")
 
-    payment = None
-    if payment_id and str(payment_id).isdigit():
-        payment = db.query(RentPayment).filter(RentPayment.id == int(payment_id)).first()
+    if not deposit_id:
+        return {"received": True}
 
+    payment = db.query(RentPayment).filter(RentPayment.mpesa_reference == deposit_id).first()
     if payment:
-        provider_reference = external_reference or reference or payment.mpesa_reference
-        if event_type == "payment.completed":
+        if event_type == "deposit.completed":
             payment.status = PaymentStatus.COMPLETED
-            payment.mpesa_reference = provider_reference
+            payment.mpesa_reference = deposit_id
             payment.paid_at = datetime.now(timezone.utc)
             payment.notes = None
-        elif event_type == "payment.failed":
+        elif event_type == "deposit.failed":
             payment.status = PaymentStatus.FAILED
-            payment.mpesa_reference = provider_reference
-            payment.notes = f"Provider status: {_provider_payment_status(data) or 'failed'}"
+            payment.mpesa_reference = deposit_id
+            payment.notes = "Provider status: failed"
         else:
             payment.status = PaymentStatus.PROCESSING
-            if provider_reference:
-                payment.mpesa_reference = provider_reference
+            payment.mpesa_reference = deposit_id
             payment.notes = f"Provider status: {_provider_payment_status(data) or 'processing'}"
         db.commit()
         return {"received": True}
 
-    unlock = None
-    if unlock_id and str(unlock_id).isdigit():
-        unlock = db.query(ListingUnlock).filter(ListingUnlock.id == int(unlock_id)).first()
-    if not unlock and reference:
-        unlock = db.query(ListingUnlock).filter(
-            ListingUnlock.mpesa_reference == f"pending:{reference}"
-        ).first()
+    unlock = db.query(ListingUnlock).filter(
+        ListingUnlock.mpesa_reference == f"pending:{deposit_id}"
+    ).first()
     if not unlock:
         return {"received": True}
 
-    if event_type == "payment.completed":
-        unlock.mpesa_reference = external_reference or reference
-    elif event_type == "payment.failed":
-        unlock.mpesa_reference = f"failed:{reference or external_reference or unlock.id}"
+    if event_type == "deposit.completed":
+        unlock.mpesa_reference = deposit_id
+    elif event_type == "deposit.failed":
+        unlock.mpesa_reference = f"failed:{deposit_id}"
     db.commit()
     return {"received": True}

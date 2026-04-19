@@ -50,7 +50,7 @@ export default function MyRentals() {
         payment_month: payForm.payment_month || currentMonth,
       })
       setPayResult(data)
-      setSuccess('Payment request created. Complete the payment and then confirm the M-Pesa reference below.')
+      setSuccess('Payment request created. Complete the nTZS mobile money prompt, then confirm the payment reference below if needed.')
     } catch (err) {
       setError(err.message)
     } finally {
@@ -218,7 +218,7 @@ export default function MyRentals() {
                 <div className="mb-6 text-center">
                   <ArrowRightLeft className="mx-auto mb-2 h-10 w-10 text-emerald-600" />
                   <h3 className="font-semibold text-slate-950">Payment Initiated</h3>
-                  <p className="mt-1 text-sm text-slate-500">Complete payment via M-Pesa, then enter the reference.</p>
+                  <p className="mt-1 text-sm text-slate-500">Complete the nTZS mobile money prompt, then enter the payment reference if confirmation is still required.</p>
                 </div>
                 <div className="mb-4 space-y-2 rounded-[1.2rem] bg-slate-50 p-4 text-sm">
                   <div className="flex justify-between"><span className="text-slate-500">Amount</span><span className="font-medium">TZS {payResult.amount?.toLocaleString()}</span></div>
@@ -228,7 +228,7 @@ export default function MyRentals() {
                 <div className="space-y-3">
                   <input
                     type="text"
-                    placeholder="M-Pesa Reference (e.g. MPESA123ABC)"
+                    placeholder="Payment Reference"
                     value={confirmRef}
                     onChange={(e) => setConfirmRef(e.target.value.toUpperCase())}
                     className={inputStyles()}

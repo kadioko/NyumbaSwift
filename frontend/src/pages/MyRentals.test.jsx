@@ -59,7 +59,7 @@ describe('MyRentals payment UX', () => {
     })
 
     expect(await screen.findByText('Payment Initiated')).toBeInTheDocument()
-    expect(screen.getByText('Payment request created. Complete the payment and then confirm the M-Pesa reference below.')).toBeInTheDocument()
+    expect(screen.getByText('Payment request created. Complete the nTZS mobile money prompt, then confirm the payment reference below if needed.')).toBeInTheDocument()
   })
 
   it('shows confirmation errors without leaving the confirmation step', async () => {
@@ -76,7 +76,7 @@ describe('MyRentals payment UX', () => {
 
     expect(await screen.findByText('Payment Initiated')).toBeInTheDocument()
 
-    fireEvent.change(screen.getByPlaceholderText('M-Pesa Reference (e.g. MPESA123ABC)'), { target: { value: 'abc123' } })
+    fireEvent.change(screen.getByPlaceholderText('Payment Reference'), { target: { value: 'abc123' } })
     fireEvent.click(screen.getByRole('button', { name: 'Confirm Payment' }))
 
     expect(await screen.findByText('Payment confirmation failed.')).toBeInTheDocument()
@@ -101,7 +101,7 @@ describe('MyRentals payment UX', () => {
 
     expect(await screen.findByText('Payment Initiated')).toBeInTheDocument()
 
-    fireEvent.change(screen.getByPlaceholderText('M-Pesa Reference (e.g. MPESA123ABC)'), { target: { value: 'abc123' } })
+    fireEvent.change(screen.getByPlaceholderText('Payment Reference'), { target: { value: 'abc123' } })
     fireEvent.click(screen.getByRole('button', { name: 'Confirm Payment' }))
 
     await waitFor(() => {
