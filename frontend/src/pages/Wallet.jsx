@@ -404,7 +404,7 @@ export default function Wallet() {
                   )}
                 </div>
                 <div className="space-y-3">
-                  <label className="block text-sm font-medium text-slate-700">Confirm with Reference</label>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Confirm with Reference</label>
                   <input
                     type="text"
                     placeholder="Payment reference (e.g. T1234ABCD)"
@@ -447,7 +447,7 @@ export default function Wallet() {
                 </div>
 
                 <div>
-                  <label className="mb-1.5 block text-sm font-medium text-slate-700">Amount (TZS)</label>
+                  <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">Amount (TZS)</label>
                   <input
                     type="number"
                     min="1000"
@@ -462,7 +462,7 @@ export default function Wallet() {
 
                 {depositMethod === 'mobile_money' && (
                   <div>
-                    <label className="mb-1.5 block text-sm font-medium text-slate-700">Phone Number</label>
+                    <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">Phone Number</label>
                     <input
                       type="tel"
                       placeholder="e.g. 0712345678 or 255712345678"
@@ -477,7 +477,7 @@ export default function Wallet() {
                 {depositMethod === 'card' && (
                   <div className="space-y-4">
                     <div>
-                      <label className="mb-1.5 block text-sm font-medium text-slate-700">Card Number</label>
+                      <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">Card Number</label>
                       <input
                         type="text"
                         placeholder="1234 5678 9012 3456"
@@ -494,7 +494,7 @@ export default function Wallet() {
                     </div>
                     <div className="grid grid-cols-3 gap-3">
                       <div>
-                        <label className="mb-1.5 block text-sm font-medium text-slate-700">Month</label>
+                        <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">Month</label>
                         <input
                           type="text"
                           placeholder="MM"
@@ -506,7 +506,7 @@ export default function Wallet() {
                         />
                       </div>
                       <div>
-                        <label className="mb-1.5 block text-sm font-medium text-slate-700">Year</label>
+                        <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">Year</label>
                         <input
                           type="text"
                           placeholder="YYYY"
@@ -518,7 +518,7 @@ export default function Wallet() {
                         />
                       </div>
                       <div>
-                        <label className="mb-1.5 block text-sm font-medium text-slate-700">CVV</label>
+                        <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">CVV</label>
                         <input
                           type="password"
                           placeholder="•••"
@@ -531,7 +531,7 @@ export default function Wallet() {
                       </div>
                     </div>
                     <div>
-                      <label className="mb-1.5 block text-sm font-medium text-slate-700">Cardholder Name</label>
+                      <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">Cardholder Name</label>
                       <input
                         type="text"
                         placeholder="As on card"
@@ -568,7 +568,7 @@ export default function Wallet() {
               </div>
 
               <div>
-                <label className="mb-1.5 block text-sm font-medium text-slate-700">Amount (TZS)</label>
+                <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">Amount (TZS)</label>
                 <input
                   type="number"
                   min="1000"
@@ -583,7 +583,7 @@ export default function Wallet() {
               </div>
 
               <div>
-                <label className="mb-1.5 block text-sm font-medium text-slate-700">Receive on Phone</label>
+                <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">Receive on Phone</label>
                 <input
                   type="tel"
                   placeholder="e.g. 0712345678"
@@ -611,8 +611,8 @@ export default function Wallet() {
             <form onSubmit={handleSend} className={surfaceCard('space-y-5')}>
               <div className="text-center mb-2">
                 <Send className="mx-auto mb-2 h-10 w-10 text-slate-600" />
-                <h3 className="font-semibold text-slate-950">Send Money</h3>
-                <p className="mt-1 text-sm text-slate-500">Instantly send TZS to any NyumbaSwift user</p>
+                <h3 className="font-semibold text-slate-950 dark:text-white">Send Money</h3>
+                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Instantly send TZS to any NyumbaSwift user</p>
               </div>
 
               <div className="rounded-[1.2rem] bg-emerald-50 px-4 py-3 text-sm text-emerald-700 flex items-center justify-between dark:bg-emerald-900/30 dark:text-emerald-400">
@@ -621,7 +621,7 @@ export default function Wallet() {
               </div>
 
               <div>
-                <label className="mb-1.5 block text-sm font-medium text-slate-700">Recipient Phone</label>
+                <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">Recipient Phone</label>
                 <input
                   type="tel"
                   placeholder="Registered NyumbaSwift phone"
@@ -634,7 +634,7 @@ export default function Wallet() {
               </div>
 
               <div>
-                <label className="mb-1.5 block text-sm font-medium text-slate-700">Amount (TZS)</label>
+                <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">Amount (TZS)</label>
                 <input
                   type="number"
                   min="100"
@@ -648,7 +648,7 @@ export default function Wallet() {
               </div>
 
               <div>
-                <label className="mb-1.5 block text-sm font-medium text-slate-700">Note <span className="font-normal text-slate-400">(optional)</span></label>
+                <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">Note <span className="font-normal text-slate-400 dark:text-slate-500">(optional)</span></label>
                 <input
                   type="text"
                   placeholder="e.g. Rent deposit, Mwezi wa 4"
@@ -674,22 +674,22 @@ export default function Wallet() {
           <div className="space-y-2">
             {allTxns.length === 0 ? (
               <div className={surfaceCard('py-12 text-center')}>
-                <ArrowRightLeft className="mx-auto mb-3 h-12 w-12 text-slate-300" />
-                <h3 className="font-semibold text-slate-700">No transaction history</h3>
-                <p className="mt-1 text-sm text-slate-500">Your deposits, withdrawals, and transfers will appear here.</p>
+                <ArrowRightLeft className="mx-auto mb-3 h-12 w-12 text-slate-300 dark:text-slate-600" />
+                <h3 className="font-semibold text-slate-700 dark:text-slate-300">No transaction history</h3>
+                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Your deposits, withdrawals, and transfers will appear here.</p>
               </div>
             ) : (
               allTxns.map((txn) => (
                 <div key={txn.id} className={surfaceCard('flex items-center gap-3 p-4')}>
                   <TxIcon type={txn.type} />
                   <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium text-slate-800">
+                    <div className="text-sm font-medium text-slate-800 dark:text-slate-200">
                       <TxLabel type={txn.type} />
                     </div>
-                    <div className="text-xs text-slate-400 truncate">{txn.description || '—'} &middot; {new Date(txn.created_at).toLocaleString()}</div>
+                    <div className="text-xs text-slate-400 dark:text-slate-500 truncate">{txn.description || '—'} &middot; {new Date(txn.created_at).toLocaleString()}</div>
                   </div>
                   <div className="text-right">
-                    <div className="text-sm font-semibold text-slate-800">
+                    <div className="text-sm font-semibold text-slate-800 dark:text-slate-200">
                       <TxSign type={txn.type} /> TZS {fmt(txn.amount)}
                     </div>
                     <StatusBadge status={txn.status} />
