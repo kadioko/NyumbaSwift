@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../context/useAuth'
 import { auth as authApi } from '../services/api'
-import { Phone, Mail, Shield, AlertCircle, CheckCircle, Loader2, Image as ImageIcon, UserRound, BadgeCheck } from 'lucide-react'
+import { Phone, Mail, Shield, AlertCircle, CheckCircle, Loader2, Image as ImageIcon, BadgeCheck } from 'lucide-react'
 import { bannerStyles, buttonStyles, inputStyles, surfaceCard } from '../components/ui'
 
 const MAX_ID_IMAGE_BYTES = 5 * 1024 * 1024
@@ -42,9 +42,7 @@ export default function Profile() {
     }
     setError('')
     const reader = new FileReader()
-    reader.onload = () => {
-      setIdImage(String(reader.result || ''))
-    }
+    reader.onload = () => { setIdImage(String(reader.result || '')) }
     reader.readAsDataURL(file)
   }
 
@@ -82,10 +80,10 @@ export default function Profile() {
   if (!user) return null
 
   const verificationColor = {
-    verified: 'bg-emerald-100 text-emerald-700',
-    pending: 'bg-amber-100 text-amber-700',
-    unverified: 'bg-slate-100 text-slate-600',
-    rejected: 'bg-red-100 text-red-700',
+    verified: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400',
+    pending: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400',
+    unverified: 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-400',
+    rejected: 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400',
   }
 
   return (
@@ -105,17 +103,17 @@ export default function Profile() {
         )}
 
         <div className={surfaceCard('overflow-hidden')}>
-          <div className="bg-[radial-gradient(circle_at_top_left,_rgba(15,127,95,0.15),_transparent_36%),linear-gradient(135deg,_rgba(255,255,255,0.94),_rgba(240,247,241,0.94))] -m-6 mb-6 px-6 py-8">
+          <div className="page-header-bg -m-6 mb-6 px-6 py-8">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-4">
-                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 text-2xl font-bold text-emerald-700">
+                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 text-2xl font-bold text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400">
                   {user.full_name?.charAt(0)}
                 </div>
                 <div>
                   <div className="eyebrow mb-2">Profile</div>
-                  <h2 className="text-2xl font-bold text-slate-950">{user.full_name}</h2>
+                  <h2 className="text-2xl font-bold text-slate-950 dark:text-white">{user.full_name}</h2>
                   <div className="mt-1 flex items-center gap-2">
-                    <span className="text-sm capitalize text-slate-500">{user.role}</span>
+                    <span className="text-sm capitalize text-slate-500 dark:text-slate-400">{user.role}</span>
                     <span className={`rounded-full px-2 py-0.5 text-xs font-medium capitalize ${verificationColor[user.verification_status]}`}>
                       {user.verification_status}
                     </span>
@@ -133,22 +131,12 @@ export default function Profile() {
           {editing ? (
             <form onSubmit={handleSave} className="space-y-4">
               <div>
-                <label className="mb-1.5 block text-sm font-medium text-slate-700">Full Name</label>
-                <input
-                  type="text"
-                  value={form.full_name}
-                  onChange={(e) => setForm({ ...form, full_name: e.target.value })}
-                  className={inputStyles()}
-                />
+                <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">Full Name</label>
+                <input type="text" value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} className={inputStyles()} />
               </div>
               <div>
-                <label className="mb-1.5 block text-sm font-medium text-slate-700">Email</label>
-                <input
-                  type="email"
-                  value={form.email}
-                  onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  className={inputStyles()}
-                />
+                <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">Email</label>
+                <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className={inputStyles()} />
               </div>
               <div className="flex flex-wrap gap-3">
                 <button type="submit" disabled={saving} className={buttonStyles()}>
@@ -162,24 +150,24 @@ export default function Profile() {
           ) : (
             <div className="space-y-4">
               <div className="grid gap-3 sm:grid-cols-2">
-                <div className="rounded-[1.2rem] bg-slate-50 px-4 py-4">
-                  <div className="mb-2 flex items-center gap-2 text-sm font-medium text-slate-500">
-                    <Phone className="h-4 w-4 text-slate-400" />
+                <div className="rounded-[1.2rem] bg-slate-50 px-4 py-4 dark:bg-slate-800">
+                  <div className="mb-2 flex items-center gap-2 text-sm font-medium text-slate-500 dark:text-slate-400">
+                    <Phone className="h-4 w-4 text-slate-400 dark:text-slate-500" />
                     Phone
                   </div>
-                  <div className="text-slate-800">{user.phone}</div>
+                  <div className="text-slate-800 dark:text-slate-200">{user.phone}</div>
                 </div>
-                <div className="rounded-[1.2rem] bg-slate-50 px-4 py-4">
-                  <div className="mb-2 flex items-center gap-2 text-sm font-medium text-slate-500">
-                    <Mail className="h-4 w-4 text-slate-400" />
+                <div className="rounded-[1.2rem] bg-slate-50 px-4 py-4 dark:bg-slate-800">
+                  <div className="mb-2 flex items-center gap-2 text-sm font-medium text-slate-500 dark:text-slate-400">
+                    <Mail className="h-4 w-4 text-slate-400 dark:text-slate-500" />
                     Email
                   </div>
-                  <div className="text-slate-800">{user.email || 'No email added yet'}</div>
+                  <div className="text-slate-800 dark:text-slate-200">{user.email || 'No email added yet'}</div>
                 </div>
               </div>
               {user.national_id && (
-                <div className="text-sm text-slate-500">
-                  National ID: <span className="font-medium text-slate-700">{user.national_id}</span>
+                <div className="text-sm text-slate-500 dark:text-slate-400">
+                  National ID: <span className="font-medium text-slate-700 dark:text-slate-300">{user.national_id}</span>
                 </div>
               )}
             </div>
@@ -189,10 +177,10 @@ export default function Profile() {
         {(user.verification_status === 'unverified' || user.verification_status === 'rejected') && (
           <div className={surfaceCard()}>
             <div className="mb-4 flex items-center gap-3">
-              <Shield className="h-5 w-5 text-emerald-600" />
-              <h3 className="font-semibold text-slate-950">Verify Your Identity</h3>
+              <Shield className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+              <h3 className="font-semibold text-slate-950 dark:text-white">Verify Your Identity</h3>
             </div>
-            <p className="mb-4 text-sm text-slate-500">
+            <p className="mb-4 text-sm text-slate-500 dark:text-slate-400">
               Add your email, national ID number, and upload an ID image so admins can review and verify your account.
             </p>
             <form onSubmit={handleVerify} className="space-y-4">
@@ -209,13 +197,13 @@ export default function Profile() {
                 className={inputStyles()}
                 required
               />
-              <label className="flex cursor-pointer items-center justify-center gap-2 rounded-[1.25rem] border border-dashed border-slate-300 px-4 py-6 text-sm text-slate-600 transition-colors hover:border-emerald-400 hover:text-emerald-700">
+              <label className="flex cursor-pointer items-center justify-center gap-2 rounded-[1.25rem] border border-dashed border-slate-300 px-4 py-6 text-sm text-slate-600 transition-colors hover:border-emerald-400 hover:text-emerald-700 dark:border-slate-600 dark:text-slate-400 dark:hover:border-emerald-500 dark:hover:text-emerald-400">
                 <ImageIcon className="h-4 w-4" />
                 <span>{idImage ? 'Replace National ID image' : 'Upload National ID image'}</span>
                 <input type="file" accept="image/*" className="hidden" onChange={handleIdImageChange} />
               </label>
               {idImage && (
-                <img src={idImage} alt="National ID preview" className="max-h-64 w-full rounded-[1.25rem] border border-slate-200 bg-slate-50 object-contain" />
+                <img src={idImage} alt="National ID preview" className="max-h-64 w-full rounded-[1.25rem] border border-slate-200 bg-slate-50 object-contain dark:border-slate-700 dark:bg-slate-800" />
               )}
               <button type="submit" disabled={verifying || !user.email || !idImage} className={buttonStyles()}>
                 {verifying ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Submit Verification'}
@@ -226,18 +214,19 @@ export default function Profile() {
 
         {user.verification_status === 'pending' && (
           <div className={surfaceCard()}>
-            <div className="mb-3 flex items-center gap-3 text-amber-800">
+            <div className="mb-3 flex items-center gap-3 text-amber-800 dark:text-amber-400">
               <BadgeCheck className="h-5 w-5" />
               <h3 className="font-semibold">Verification Pending Review</h3>
             </div>
-            <p className="mb-4 text-sm text-slate-600">
+            <p className="mb-4 text-sm text-slate-600 dark:text-slate-400">
               Your National ID details have been submitted. An admin will review them and verify your account once everything checks out.
             </p>
             {user.profile_photo_url && (
-              <img src={user.profile_photo_url} alt="Submitted National ID" className="max-h-64 w-full rounded-[1.25rem] border border-slate-200 bg-slate-50 object-contain" />
+              <img src={user.profile_photo_url} alt="Submitted National ID" className="max-h-64 w-full rounded-[1.25rem] border border-slate-200 bg-slate-50 object-contain dark:border-slate-700 dark:bg-slate-800" />
             )}
           </div>
         )}
+
       </div>
     </div>
   )

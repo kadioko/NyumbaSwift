@@ -45,7 +45,7 @@ const steps = [
 ]
 
 const landlordBenefits = [
-  'Automated rent collection via M-Pesa',
+  'Automated rent collection via mobile money',
   'Real-time payment tracking dashboard',
   'Verified tenant profiles',
   'Premium listing boost for faster occupancy',
@@ -162,14 +162,14 @@ export default function Landing() {
 
       <section className="px-4 pb-10 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
-          <div className="grid gap-3 rounded-[1.75rem] border border-white/70 bg-white/78 p-4 shadow-[0_16px_40px_rgba(17,36,25,0.08)] backdrop-blur-xl md:grid-cols-3">
+          <div className="grid gap-3 rounded-[1.75rem] border border-white/70 bg-white/78 p-4 shadow-[0_16px_40px_rgba(17,36,25,0.08)] backdrop-blur-xl md:grid-cols-3 dark:border-white/8 dark:bg-slate-900/80">
             {highlightCards.map(({ title, desc, icon }) => {
               const Icon = icon
               return (
-                <div key={title} className="rounded-[1.25rem] border border-slate-100 bg-gradient-to-br from-white to-emerald-50/65 p-5">
-                  <Icon className="mb-4 h-5 w-5 text-emerald-700" />
-                  <div className="mb-2 text-sm font-semibold uppercase tracking-[0.12em] text-slate-500">{title}</div>
-                  <div className="text-sm leading-relaxed text-slate-600">{desc}</div>
+                <div key={title} className="rounded-[1.25rem] border border-slate-100 bg-gradient-to-br from-white to-emerald-50/65 p-5 dark:border-slate-700 dark:from-slate-800 dark:to-slate-800">
+                  <Icon className="mb-4 h-5 w-5 text-emerald-700 dark:text-emerald-400" />
+                  <div className="mb-2 text-sm font-semibold uppercase tracking-[0.12em] text-slate-500 dark:text-slate-400">{title}</div>
+                  <div className="text-sm leading-relaxed text-slate-600 dark:text-slate-300">{desc}</div>
                 </div>
               )
             })}
@@ -177,16 +177,16 @@ export default function Landing() {
         </div>
       </section>
 
-      <section className="border-y border-slate-200/80 bg-white/70 backdrop-blur">
+      <section className="border-y border-slate-200/80 bg-white/70 backdrop-blur dark:border-white/8 dark:bg-slate-900/50">
         <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
             {stats.map(({ label, value, icon }) => {
               const Icon = icon
               return (
-                <div key={label} className="rounded-[1.4rem] border border-slate-100 bg-white/85 px-4 py-5 text-center shadow-sm">
-                  <Icon className="mx-auto mb-2 h-6 w-6 text-emerald-700" />
-                  <div className="text-2xl font-bold text-slate-950">{value}</div>
-                  <div className="text-sm text-slate-500">{label}</div>
+                <div key={label} className="rounded-[1.4rem] border border-slate-100 bg-white/85 px-4 py-5 text-center shadow-sm dark:border-slate-700 dark:bg-slate-800/80">
+                  <Icon className="mx-auto mb-2 h-6 w-6 text-emerald-700 dark:text-emerald-400" />
+                  <div className="text-2xl font-bold text-slate-950 dark:text-white">{value}</div>
+                  <div className="text-sm text-slate-500 dark:text-slate-400">{label}</div>
                 </div>
               )
             })}
@@ -198,8 +198,8 @@ export default function Landing() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mb-12 text-center">
             <span className="eyebrow mb-4">How it works</span>
-            <h2 className="mx-auto mb-3 max-w-3xl text-3xl font-bold text-slate-950 sm:text-4xl">A simpler path from search to signed rental</h2>
-            <p className="mx-auto max-w-2xl text-slate-500">
+            <h2 className="mx-auto mb-3 max-w-3xl text-3xl font-bold text-slate-950 sm:text-4xl dark:text-white">A simpler path from search to signed rental</h2>
+            <p className="mx-auto max-w-2xl text-slate-500 dark:text-slate-400">
               Designed for the real rhythms of Dar&apos;s market, from discovery to contact unlock to payment follow-through.
             </p>
           </div>
@@ -207,15 +207,15 @@ export default function Landing() {
             {steps.map(({ step, title, desc, icon }) => {
               const Icon = icon
               return (
-                <div key={step} className="shell-card rounded-[1.6rem] p-8 transition-all hover:-translate-y-1 hover:border-emerald-200">
+                <div key={step} className="shell-card rounded-[1.6rem] p-8 transition-all hover:-translate-y-1 hover:border-emerald-200 dark:hover:border-emerald-700">
                   <div className="mb-4 flex items-center gap-3">
-                    <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-100">
-                      <Icon className="h-5 w-5 text-emerald-700" />
+                    <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-100 dark:bg-emerald-900/40">
+                      <Icon className="h-5 w-5 text-emerald-700 dark:text-emerald-400" />
                     </div>
-                    <span className="text-sm font-bold uppercase tracking-[0.16em] text-emerald-700">{step}</span>
+                    <span className="text-sm font-bold uppercase tracking-[0.16em] text-emerald-700 dark:text-emerald-400">{step}</span>
                   </div>
-                  <h3 className="mb-2 text-xl font-semibold text-slate-950">{title}</h3>
-                  <p className="leading-relaxed text-slate-600">{desc}</p>
+                  <h3 className="mb-2 text-xl font-semibold text-slate-950 dark:text-white">{title}</h3>
+                  <p className="leading-relaxed text-slate-600 dark:text-slate-400">{desc}</p>
                 </div>
               )
             })}
@@ -223,23 +223,23 @@ export default function Landing() {
         </div>
       </section>
 
-      <section className="bg-white/72 py-20 backdrop-blur">
+      <section className="bg-white/72 py-20 backdrop-blur dark:bg-slate-900/40">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid items-center gap-12 lg:grid-cols-2">
             <div>
-              <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-emerald-50 px-4 py-1.5 text-sm font-medium text-emerald-700">
+              <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-emerald-50 px-4 py-1.5 text-sm font-medium text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
                 <TrendingUp className="w-4 h-4" />
                 For Landlords
               </div>
-              <h2 className="mb-4 text-3xl font-bold text-slate-950 sm:text-4xl">Collect rent without the headache</h2>
-              <p className="mb-6 leading-relaxed text-slate-600">
+              <h2 className="mb-4 text-3xl font-bold text-slate-950 sm:text-4xl dark:text-white">Collect rent without the headache</h2>
+              <p className="mb-6 leading-relaxed text-slate-600 dark:text-slate-400">
                 Stop chasing tenants for rent. NyumbaSwift supports digital collection, cleaner communication, and a stronger trust layer across your portfolio.
               </p>
               <ul className="mb-8 space-y-3">
                 {landlordBenefits.map((item) => (
                   <li key={item} className="flex items-start gap-3">
                     <CheckCircle className="mt-0.5 h-5 w-5 shrink-0 text-emerald-500" />
-                    <span className="text-slate-700">{item}</span>
+                    <span className="text-slate-700 dark:text-slate-300">{item}</span>
                   </li>
                 ))}
               </ul>

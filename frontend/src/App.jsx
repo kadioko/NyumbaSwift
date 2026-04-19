@@ -15,6 +15,7 @@ import MyRentals from './pages/MyRentals'
 import Agents from './pages/Agents'
 import AgentApply from './pages/AgentApply'
 import Profile from './pages/Profile'
+import Wallet from './pages/Wallet'
 import AboutNyumbaSwift from './pages/AboutNyumbaSwift'
 import BecomeAgentInfo from './pages/BecomeAgentInfo'
 import TermsConditions from './pages/TermsConditions'
@@ -75,6 +76,7 @@ export default function App() {
           <Route element={<RouteGate requireAuth />}>
             <Route path="/profile" element={<Profile />} />
             <Route path="/my-rentals" element={<MyRentals />} />
+            <Route path="/wallet" element={<Wallet />} />
             <Route path="/agents/apply" element={<AgentApply />} />
           </Route>
 

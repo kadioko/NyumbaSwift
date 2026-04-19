@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { CreditCard, Calendar, Home, Loader2, AlertCircle, CheckCircle, Wallet, ArrowRightLeft } from 'lucide-react'
+import { CreditCard, Calendar, Home, AlertCircle, CheckCircle, Wallet, ArrowRightLeft } from 'lucide-react'
 import { rentals as rentalApi } from '../services/api'
 import { bannerStyles, buttonStyles, inputStyles, skeletonBlock, surfaceCard } from '../components/ui'
 
@@ -32,9 +32,7 @@ export default function MyRentals() {
     }
   }, [])
 
-  useEffect(() => {
-    loadRentalData()
-  }, [loadRentalData])
+  useEffect(() => { loadRentalData() }, [loadRentalData])
 
   const currentMonth = new Date().toISOString().slice(0, 7)
 
@@ -117,16 +115,16 @@ export default function MyRentals() {
     <div className="min-h-screen">
       <div className="px-4 pt-5 sm:px-6 lg:px-8">
         <div className="shell-card mx-auto max-w-4xl overflow-hidden rounded-[2rem]">
-          <div className="bg-[radial-gradient(circle_at_top_left,_rgba(15,127,95,0.15),_transparent_36%),radial-gradient(circle_at_top_right,_rgba(211,154,52,0.12),_transparent_20%),linear-gradient(135deg,_rgba(255,255,255,0.94),_rgba(240,247,241,0.94))] px-4 py-6 sm:px-6 lg:px-8">
+          <div className="page-header-bg px-4 py-6 sm:px-6 lg:px-8">
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
               <div>
                 <div className="eyebrow mb-3">Renter workspace</div>
-                <h1 className="text-3xl font-bold text-slate-950">My Rentals</h1>
-                <p className="mt-1 text-slate-600">Manage your rentals and pay rent</p>
+                <h1 className="text-3xl font-bold text-slate-950 dark:text-white">My Rentals</h1>
+                <p className="mt-1 text-slate-600 dark:text-slate-400">Manage your rentals and pay rent</p>
               </div>
-              <div className="rounded-[1.4rem] border border-white/80 bg-white/85 px-5 py-4 shadow-sm">
-                <div className="text-sm text-slate-500">Active rentals</div>
-                <div className="text-3xl font-bold text-slate-950">{activeRentals.length}</div>
+              <div className="rounded-[1.4rem] border border-white/80 bg-white/85 px-5 py-4 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+                <div className="text-sm text-slate-500 dark:text-slate-400">Active rentals</div>
+                <div className="text-3xl font-bold text-slate-950 dark:text-white">{activeRentals.length}</div>
               </div>
             </div>
 
@@ -137,8 +135,8 @@ export default function MyRentals() {
                   onClick={() => setTab(t)}
                   className={`rounded-full px-4 py-2 text-sm font-semibold capitalize transition-colors ${
                     tab === t
-                      ? 'bg-slate-950 text-white'
-                      : 'bg-white/85 text-slate-600 hover:bg-emerald-50 hover:text-emerald-700'
+                      ? 'bg-slate-950 text-white dark:bg-white dark:text-slate-950'
+                      : 'bg-white/85 text-slate-600 hover:bg-emerald-50 hover:text-emerald-700 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-emerald-900/30 dark:hover:text-emerald-400'
                   }`}
                 >
                   {t}
@@ -156,7 +154,7 @@ export default function MyRentals() {
               <AlertCircle className="h-4 w-4 shrink-0" />
               <span>{error}</span>
             </div>
-            <button type="button" onClick={loadRentalData} className="font-medium text-red-700 hover:text-red-800">
+            <button type="button" onClick={loadRentalData} className="font-medium text-red-700 hover:text-red-800 dark:text-red-300">
               Retry
             </button>
           </div>
@@ -173,10 +171,10 @@ export default function MyRentals() {
           <div className="space-y-4">
             {myRentals.length === 0 ? (
               <div className={surfaceCard('py-12 text-center')}>
-                <Home className="mx-auto mb-3 h-12 w-12 text-slate-300" />
-                <h3 className="font-semibold text-slate-700">No active rentals</h3>
-                <p className="mt-1 text-slate-500">Your rental agreements will appear here.</p>
-                <div className="mt-5 rounded-[1.2rem] bg-slate-50 px-4 py-4 text-sm text-slate-500">
+                <Home className="mx-auto mb-3 h-12 w-12 text-slate-300 dark:text-slate-600" />
+                <h3 className="font-semibold text-slate-700 dark:text-slate-300">No active rentals</h3>
+                <p className="mt-1 text-slate-500 dark:text-slate-400">Your rental agreements will appear here.</p>
+                <div className="mt-5 rounded-[1.2rem] bg-slate-50 px-4 py-4 text-sm text-slate-500 dark:bg-slate-800 dark:text-slate-400">
                   When you sign a rental through NyumbaSwift, payment tracking and history will show up automatically.
                 </div>
               </div>
@@ -184,19 +182,19 @@ export default function MyRentals() {
               myRentals.map((rental) => (
                 <div key={rental.id} className={surfaceCard('p-5')}>
                   <div className="mb-3 flex items-center justify-between">
-                    <span className="font-semibold text-slate-950">Rental #{rental.id}</span>
+                    <span className="font-semibold text-slate-950 dark:text-white">Rental #{rental.id}</span>
                     <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                      rental.status === 'active' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600'
+                      rental.status === 'active' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400' : 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-400'
                     }`}>
                       {rental.status}
                     </span>
                   </div>
-                  <div className="grid gap-3 text-sm text-slate-600 sm:grid-cols-2">
-                    <div className="rounded-xl bg-slate-50 px-4 py-3">
-                      <span className="text-slate-400">Monthly Rent:</span> TZS {rental.monthly_rent?.toLocaleString()}
+                  <div className="grid gap-3 text-sm text-slate-600 sm:grid-cols-2 dark:text-slate-400">
+                    <div className="rounded-xl bg-slate-50 px-4 py-3 dark:bg-slate-800">
+                      <span className="text-slate-400 dark:text-slate-500">Monthly Rent:</span> TZS {rental.monthly_rent?.toLocaleString()}
                     </div>
-                    <div className="rounded-xl bg-slate-50 px-4 py-3">
-                      <span className="text-slate-400">Started:</span> {new Date(rental.start_date).toLocaleDateString()}
+                    <div className="rounded-xl bg-slate-50 px-4 py-3 dark:bg-slate-800">
+                      <span className="text-slate-400 dark:text-slate-500">Started:</span> {new Date(rental.start_date).toLocaleDateString()}
                     </div>
                   </div>
                 </div>
@@ -209,21 +207,21 @@ export default function MyRentals() {
           <div className="mx-auto max-w-md">
             {!payResult && activeRentals.length === 0 ? (
               <div className={surfaceCard('py-10 text-center')}>
-                <Wallet className="mx-auto mb-3 h-12 w-12 text-slate-300" />
-                <h3 className="mb-1 font-semibold text-slate-700">No active rentals available for payment</h3>
-                <p className="text-slate-500">Once you have an active rental, you&apos;ll be able to initiate rent payments here.</p>
+                <Wallet className="mx-auto mb-3 h-12 w-12 text-slate-300 dark:text-slate-600" />
+                <h3 className="mb-1 font-semibold text-slate-700 dark:text-slate-300">No active rentals available for payment</h3>
+                <p className="text-slate-500 dark:text-slate-400">Once you have an active rental, you&apos;ll be able to initiate rent payments here.</p>
               </div>
             ) : payResult ? (
               <div className={surfaceCard()}>
                 <div className="mb-6 text-center">
-                  <ArrowRightLeft className="mx-auto mb-2 h-10 w-10 text-emerald-600" />
-                  <h3 className="font-semibold text-slate-950">Payment Initiated</h3>
-                  <p className="mt-1 text-sm text-slate-500">Complete the nTZS mobile money prompt, then enter the payment reference if confirmation is still required.</p>
+                  <ArrowRightLeft className="mx-auto mb-2 h-10 w-10 text-emerald-600 dark:text-emerald-400" />
+                  <h3 className="font-semibold text-slate-950 dark:text-white">Payment Initiated</h3>
+                  <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Complete the nTZS mobile money prompt, then enter the payment reference if confirmation is still required.</p>
                 </div>
-                <div className="mb-4 space-y-2 rounded-[1.2rem] bg-slate-50 p-4 text-sm">
-                  <div className="flex justify-between"><span className="text-slate-500">Amount</span><span className="font-medium">TZS {payResult.amount?.toLocaleString()}</span></div>
-                  <div className="flex justify-between"><span className="text-slate-500">Platform Fee</span><span className="font-medium">TZS {payResult.platform_fee?.toLocaleString()}</span></div>
-                  <div className="flex justify-between border-t border-slate-200 pt-2"><span className="text-slate-500">Landlord Receives</span><span className="font-bold text-emerald-700">TZS {payResult.landlord_payout?.toLocaleString()}</span></div>
+                <div className="mb-4 space-y-2 rounded-[1.2rem] bg-slate-50 p-4 text-sm dark:bg-slate-800">
+                  <div className="flex justify-between"><span className="text-slate-500 dark:text-slate-400">Amount</span><span className="font-medium dark:text-slate-200">TZS {payResult.amount?.toLocaleString()}</span></div>
+                  <div className="flex justify-between"><span className="text-slate-500 dark:text-slate-400">Platform Fee</span><span className="font-medium dark:text-slate-200">TZS {payResult.platform_fee?.toLocaleString()}</span></div>
+                  <div className="flex justify-between border-t border-slate-200 pt-2 dark:border-slate-700"><span className="text-slate-500 dark:text-slate-400">Landlord Receives</span><span className="font-bold text-emerald-700 dark:text-emerald-400">TZS {payResult.landlord_payout?.toLocaleString()}</span></div>
                 </div>
                 <div className="space-y-3">
                   <input
@@ -241,11 +239,11 @@ export default function MyRentals() {
             ) : (
               <form onSubmit={handlePay} className={surfaceCard('space-y-5')}>
                 <div className="mb-2 text-center">
-                  <CreditCard className="mx-auto mb-2 h-10 w-10 text-emerald-600" />
-                  <h3 className="font-semibold text-slate-950">Pay Rent</h3>
+                  <CreditCard className="mx-auto mb-2 h-10 w-10 text-emerald-600 dark:text-emerald-400" />
+                  <h3 className="font-semibold text-slate-950 dark:text-white">Pay Rent</h3>
                 </div>
                 <div>
-                  <label className="mb-1.5 block text-sm font-medium text-slate-700">Rental</label>
+                  <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">Rental</label>
                   <select
                     value={payForm.rental_id}
                     onChange={(e) => setPayForm({ ...payForm, rental_id: e.target.value })}
@@ -259,7 +257,7 @@ export default function MyRentals() {
                   </select>
                 </div>
                 <div>
-                  <label className="mb-1.5 block text-sm font-medium text-slate-700">Payment Month</label>
+                  <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">Payment Month</label>
                   <input
                     type="month"
                     value={payForm.payment_month || currentMonth}
@@ -280,21 +278,21 @@ export default function MyRentals() {
           <div className="space-y-3">
             {payments.length === 0 ? (
               <div className={surfaceCard('py-12 text-center')}>
-                <Calendar className="mx-auto mb-3 h-12 w-12 text-slate-300" />
-                <h3 className="font-semibold text-slate-700">No payment history</h3>
-                <p className="mt-1 text-slate-500">Completed and pending rent payments will show up here once you start paying through the platform.</p>
+                <Calendar className="mx-auto mb-3 h-12 w-12 text-slate-300 dark:text-slate-600" />
+                <h3 className="font-semibold text-slate-700 dark:text-slate-300">No payment history</h3>
+                <p className="mt-1 text-slate-500 dark:text-slate-400">Completed and pending rent payments will show up here once you start paying through the platform.</p>
               </div>
             ) : (
               payments.map((payment) => (
                 <div key={payment.id} className={surfaceCard('flex items-center justify-between p-4')}>
                   <div>
-                    <div className="font-medium text-slate-900">TZS {payment.amount?.toLocaleString()}</div>
-                    <div className="text-sm text-slate-500">{payment.payment_month} &middot; {payment.mpesa_reference || 'Pending'}</div>
+                    <div className="font-medium text-slate-900 dark:text-slate-100">TZS {payment.amount?.toLocaleString()}</div>
+                    <div className="text-sm text-slate-500 dark:text-slate-400">{payment.payment_month} &middot; {payment.mpesa_reference || 'Pending'}</div>
                   </div>
                   <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${
-                    payment.status === 'completed' ? 'bg-emerald-100 text-emerald-700' :
-                    payment.status === 'pending' ? 'bg-amber-100 text-amber-700' :
-                    'bg-slate-100 text-slate-600'
+                    payment.status === 'completed' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400' :
+                    payment.status === 'pending' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400' :
+                    'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-400'
                   }`}>
                     {payment.status === 'completed' && <CheckCircle className="h-3 w-3" />}
                     {payment.status}

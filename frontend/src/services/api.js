@@ -98,3 +98,13 @@ export const dashboard = {
   landlordProperties: () => request('/dashboard/landlord/properties'),
   platformStats: () => request('/dashboard/admin/platform-stats'),
 }
+
+// Wallet
+export const wallet = {
+  get: () => request('/wallet/'),
+  transactions: () => request('/wallet/transactions'),
+  deposit: (body) => request('/wallet/deposit', { method: 'POST', body: JSON.stringify(body) }),
+  confirmDeposit: (txId, body) => request(`/wallet/deposit/${txId}/confirm`, { method: 'POST', body: JSON.stringify(body) }),
+  withdraw: (body) => request('/wallet/withdraw', { method: 'POST', body: JSON.stringify(body) }),
+  send: (body) => request('/wallet/send', { method: 'POST', body: JSON.stringify(body) }),
+}

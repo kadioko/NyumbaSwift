@@ -7,12 +7,12 @@ export function buttonStyles({
   fullWidth = false,
   className = '',
 } = {}) {
-  const base = 'inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-3 font-semibold transition focus:outline-none focus:ring-4 focus:ring-emerald-100 disabled:opacity-50'
+  const base = 'inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-3 font-semibold transition focus:outline-none focus:ring-4 focus:ring-emerald-100 dark:focus:ring-emerald-900/50 disabled:opacity-50'
   const variants = {
     primary: 'bg-gradient-to-r from-emerald-600 to-teal-700 text-white shadow-[0_16px_28px_rgba(15,127,95,0.22)] hover:-translate-y-0.5',
-    secondary: 'border border-slate-200 bg-white/90 text-slate-700 hover:bg-slate-50',
-    subtle: 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100',
-    danger: 'border border-red-200 bg-white text-red-600 hover:bg-red-50',
+    secondary: 'border border-slate-200 bg-white/90 text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700',
+    subtle: 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-400 dark:hover:bg-emerald-900/50',
+    danger: 'border border-red-200 bg-white text-red-600 hover:bg-red-50 dark:border-red-800 dark:bg-transparent dark:text-red-400 dark:hover:bg-red-900/30',
   }
 
   return cn(base, variants[variant], fullWidth && 'w-full', className)
@@ -25,6 +25,7 @@ export function surfaceCard(className = '') {
 export function inputStyles(className = '') {
   return cn(
     'w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-700 outline-none transition focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100',
+    'dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:placeholder-slate-500 dark:focus:border-emerald-500 dark:focus:ring-emerald-900/50',
     className,
   )
 }
@@ -35,10 +36,10 @@ export function leadingInputStyles(className = '') {
 
 export function bannerStyles(type = 'info', className = '') {
   const styles = {
-    info: 'border-slate-200 bg-white/85 text-slate-700',
-    success: 'border-emerald-100 bg-emerald-50 text-emerald-700',
-    error: 'border-red-100 bg-red-50 text-red-700',
-    warning: 'border-amber-100 bg-amber-50 text-amber-800',
+    info: 'border-slate-200 bg-white/85 text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300',
+    success: 'border-emerald-100 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300',
+    error: 'border-red-100 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-900/40 dark:text-red-300',
+    warning: 'border-amber-100 bg-amber-50 text-amber-800 dark:border-amber-800 dark:bg-amber-900/40 dark:text-amber-300',
   }
 
   return cn('flex items-center gap-2 rounded-2xl border px-4 py-3 text-sm', styles[type], className)
@@ -49,5 +50,5 @@ export function sectionEyebrowStyles(className = '') {
 }
 
 export function skeletonBlock(className = '') {
-  return cn('animate-pulse rounded-2xl bg-slate-200/70', className)
+  return cn('animate-pulse rounded-2xl bg-slate-200/70 dark:bg-slate-700/70', className)
 }

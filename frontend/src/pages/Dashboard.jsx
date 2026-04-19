@@ -32,7 +32,6 @@ export default function Dashboard() {
 
   const loadDashboard = useCallback(async () => {
     if (!user) return
-
     setLoading(true)
     setError('')
     try {
@@ -57,9 +56,7 @@ export default function Dashboard() {
     }
   }, [isAdmin, user])
 
-  useEffect(() => {
-    loadDashboard()
-  }, [loadDashboard])
+  useEffect(() => { loadDashboard() }, [loadDashboard])
 
   useEffect(() => {
     if (!success) return undefined
@@ -85,13 +82,7 @@ export default function Dashboard() {
   const updatePropertyCard = (updatedProperty) => {
     setProperties((current) => current.map((property) => (
       property.property_id === updatedProperty.id
-        ? {
-            ...property,
-            status: updatedProperty.status,
-            rent_amount: updatedProperty.rent_amount,
-            is_verified: updatedProperty.is_verified,
-            is_premium: updatedProperty.is_premium,
-          }
+        ? { ...property, status: updatedProperty.status, rent_amount: updatedProperty.rent_amount, is_verified: updatedProperty.is_verified, is_premium: updatedProperty.is_premium }
         : property
     )))
   }
@@ -136,10 +127,10 @@ export default function Dashboard() {
   }
 
   const stats = summary ? [
-    { label: 'Total Properties', value: summary.total_properties, icon: Building, color: 'bg-blue-50 text-blue-600' },
-    { label: 'Active Listings', value: summary.active_listings, icon: TrendingUp, color: 'bg-emerald-50 text-emerald-600' },
-    { label: isAdmin ? 'Active Rentals' : 'Active Tenants', value: summary.active_rentals, icon: Users, color: 'bg-violet-50 text-violet-600' },
-    { label: isAdmin ? 'Platform Revenue' : 'Rent Collected', value: `TZS ${(isAdmin ? summary.total_platform_revenue_tzs : summary.total_rent_collected_tzs)?.toLocaleString()}`, icon: CreditCard, color: 'bg-amber-50 text-amber-600' },
+    { label: 'Total Properties', value: summary.total_properties, icon: Building, color: 'bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400' },
+    { label: 'Active Listings', value: summary.active_listings, icon: TrendingUp, color: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400' },
+    { label: isAdmin ? 'Active Rentals' : 'Active Tenants', value: summary.active_rentals, icon: Users, color: 'bg-violet-50 text-violet-600 dark:bg-violet-900/30 dark:text-violet-400' },
+    { label: isAdmin ? 'Platform Revenue' : 'Rent Collected', value: `TZS ${(isAdmin ? summary.total_platform_revenue_tzs : summary.total_rent_collected_tzs)?.toLocaleString()}`, icon: CreditCard, color: 'bg-amber-50 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400' },
   ] : []
 
   const tabs = isAdmin ? ['overview', 'verifications'] : ['overview', 'properties']
@@ -148,12 +139,12 @@ export default function Dashboard() {
     <div className="min-h-screen">
       <div className="px-4 pt-5 sm:px-6 lg:px-8">
         <div className="shell-card mx-auto max-w-7xl overflow-hidden rounded-[2rem]">
-          <div className="bg-[radial-gradient(circle_at_top_left,_rgba(15,127,95,0.15),_transparent_36%),radial-gradient(circle_at_top_right,_rgba(211,154,52,0.12),_transparent_20%),linear-gradient(135deg,_rgba(255,255,255,0.94),_rgba(240,247,241,0.94))] px-4 py-6 sm:px-6 lg:px-8">
+          <div className="page-header-bg px-4 py-6 sm:px-6 lg:px-8">
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
               <div>
                 <div className="eyebrow mb-3">Control center</div>
-                <h1 className="text-3xl font-bold text-slate-950">Dashboard</h1>
-                <p className="mt-1 text-slate-600">Welcome back, {user?.full_name}</p>
+                <h1 className="text-3xl font-bold text-slate-950 dark:text-white">Dashboard</h1>
+                <p className="mt-1 text-slate-600 dark:text-slate-400">Welcome back, {user?.full_name}</p>
               </div>
               {!isAdmin && (
                 <Link
@@ -173,8 +164,8 @@ export default function Dashboard() {
                   onClick={() => setTab(t)}
                   className={`rounded-full px-4 py-2 text-sm font-semibold capitalize transition-colors ${
                     tab === t
-                      ? 'bg-slate-950 text-white'
-                      : 'bg-white/85 text-slate-600 hover:bg-emerald-50 hover:text-emerald-700'
+                      ? 'bg-slate-950 text-white dark:bg-white dark:text-slate-950'
+                      : 'bg-white/85 text-slate-600 hover:bg-emerald-50 hover:text-emerald-700 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-emerald-900/30 dark:hover:text-emerald-400'
                   }`}
                 >
                   {t}
@@ -187,19 +178,19 @@ export default function Dashboard() {
 
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
         {error && (
-          <div className="mb-6 flex items-center justify-between gap-3 rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700">
+          <div className="mb-6 flex items-center justify-between gap-3 rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-900/40 dark:text-red-300">
             <div className="flex items-center gap-2">
               <AlertCircle className="h-4 w-4 shrink-0" />
               <span>{error}</span>
             </div>
-            <button type="button" onClick={loadDashboard} className="font-medium text-red-700 hover:text-red-800">
+            <button type="button" onClick={loadDashboard} className="font-medium text-red-700 hover:text-red-800 dark:text-red-300">
               Retry
             </button>
           </div>
         )}
 
         {success && (
-          <div className="mb-6 flex items-center gap-2 rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+          <div className="mb-6 flex items-center gap-2 rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300">
             <CheckCircle className="h-4 w-4 shrink-0" />
             <span>{success}</span>
           </div>
@@ -207,9 +198,9 @@ export default function Dashboard() {
 
         {!summary ? (
           <div className="shell-card rounded-[1.8rem] p-12 text-center">
-            <Building className="mx-auto mb-3 h-12 w-12 text-slate-300" />
-            <h3 className="mb-1 font-semibold text-slate-700">Dashboard data is unavailable</h3>
-            <p className="mb-4 text-slate-500">We couldn&apos;t load your latest dashboard information.</p>
+            <Building className="mx-auto mb-3 h-12 w-12 text-slate-300 dark:text-slate-600" />
+            <h3 className="mb-1 font-semibold text-slate-700 dark:text-slate-300">Dashboard data is unavailable</h3>
+            <p className="mb-4 text-slate-500 dark:text-slate-400">We couldn&apos;t load your latest dashboard information.</p>
             <button type="button" onClick={loadDashboard} className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 font-medium text-white hover:bg-emerald-700">
               <Loader2 className="h-4 w-4" />
               Try Again
@@ -225,12 +216,12 @@ export default function Dashboard() {
                     return (
                       <div key={label} className="shell-card rounded-[1.5rem] p-5">
                         <div className="mb-3 flex items-center justify-between">
-                          <span className="text-sm text-slate-500">{label}</span>
+                          <span className="text-sm text-slate-500 dark:text-slate-400">{label}</span>
                           <div className={`flex h-10 w-10 items-center justify-center rounded-2xl ${color}`}>
                             <Icon className="h-4 w-4" />
                           </div>
                         </div>
-                        <div className="text-2xl font-bold text-slate-950">{value}</div>
+                        <div className="text-2xl font-bold text-slate-950 dark:text-white">{value}</div>
                       </div>
                     )
                   })}
@@ -238,19 +229,19 @@ export default function Dashboard() {
 
                 <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
                   <div className="shell-card rounded-[1.75rem] p-6">
-                    <h3 className="mb-4 font-semibold text-slate-950">{isAdmin ? 'Platform Summary' : 'Revenue Summary'}</h3>
+                    <h3 className="mb-4 font-semibold text-slate-950 dark:text-white">{isAdmin ? 'Platform Summary' : 'Revenue Summary'}</h3>
                     <div className="grid gap-6 sm:grid-cols-3">
                       <div>
-                        <div className="mb-1 text-sm text-slate-500">{isAdmin ? 'Rent Processed' : 'Total Rent Collected'}</div>
-                        <div className="text-xl font-bold text-slate-950">TZS {(isAdmin ? summary.total_rent_processed_tzs : summary.total_rent_collected_tzs)?.toLocaleString()}</div>
+                        <div className="mb-1 text-sm text-slate-500 dark:text-slate-400">{isAdmin ? 'Rent Processed' : 'Total Rent Collected'}</div>
+                        <div className="text-xl font-bold text-slate-950 dark:text-white">TZS {(isAdmin ? summary.total_rent_processed_tzs : summary.total_rent_collected_tzs)?.toLocaleString()}</div>
                       </div>
                       <div>
-                        <div className="mb-1 text-sm text-slate-500">{isAdmin ? 'Unlock Revenue' : 'Platform Fees Paid'}</div>
-                        <div className="text-xl font-bold text-slate-950">TZS {(isAdmin ? summary.unlock_fees_revenue_tzs : summary.total_platform_fees_tzs)?.toLocaleString()}</div>
+                        <div className="mb-1 text-sm text-slate-500 dark:text-slate-400">{isAdmin ? 'Unlock Revenue' : 'Platform Fees Paid'}</div>
+                        <div className="text-xl font-bold text-slate-950 dark:text-white">TZS {(isAdmin ? summary.unlock_fees_revenue_tzs : summary.total_platform_fees_tzs)?.toLocaleString()}</div>
                       </div>
                       <div>
-                        <div className="mb-1 text-sm text-slate-500">{isAdmin ? 'Pending Verifications' : 'Pending Payments'}</div>
-                        <div className="text-xl font-bold text-amber-600">{isAdmin ? pendingVerifications.length : summary.pending_payments}</div>
+                        <div className="mb-1 text-sm text-slate-500 dark:text-slate-400">{isAdmin ? 'Pending Verifications' : 'Pending Payments'}</div>
+                        <div className="text-xl font-bold text-amber-600 dark:text-amber-400">{isAdmin ? pendingVerifications.length : summary.pending_payments}</div>
                       </div>
                     </div>
                   </div>
@@ -272,9 +263,9 @@ export default function Dashboard() {
               <div className="space-y-4">
                 {properties.length === 0 ? (
                   <div className="shell-card rounded-[1.8rem] p-12 text-center">
-                    <Building className="mx-auto mb-3 h-12 w-12 text-slate-300" />
-                    <h3 className="mb-1 font-semibold text-slate-700">No properties yet</h3>
-                    <p className="mb-4 text-slate-500">Start by adding your first rental property.</p>
+                    <Building className="mx-auto mb-3 h-12 w-12 text-slate-300 dark:text-slate-600" />
+                    <h3 className="mb-1 font-semibold text-slate-700 dark:text-slate-300">No properties yet</h3>
+                    <p className="mb-4 text-slate-500 dark:text-slate-400">Start by adding your first rental property.</p>
                     <Link to="/properties/new" className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 font-medium text-white hover:bg-emerald-700">
                       <Plus className="h-4 w-4" />
                       Add Property
@@ -282,29 +273,29 @@ export default function Dashboard() {
                   </div>
                 ) : (
                   properties.map((p) => (
-                    <div key={p.property_id} className="shell-card rounded-[1.6rem] p-5 transition-colors hover:border-emerald-200">
+                    <div key={p.property_id} className="shell-card rounded-[1.6rem] p-5 transition-colors hover:border-emerald-200 dark:hover:border-emerald-700">
                       <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
                         <div className="flex-1">
                           <div className="mb-1 flex flex-wrap items-center gap-3">
-                            <h3 className="font-semibold text-slate-950">{p.title}</h3>
+                            <h3 className="font-semibold text-slate-950 dark:text-white">{p.title}</h3>
                             <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                              p.status === 'active' ? 'bg-emerald-100 text-emerald-700' :
-                              p.status === 'pending_verification' ? 'bg-amber-100 text-amber-700' :
-                              'bg-slate-100 text-slate-600'
+                              p.status === 'active' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400' :
+                              p.status === 'pending_verification' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400' :
+                              'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-400'
                             }`}>
                               {p.status.replace('_', ' ')}
                             </span>
-                            {p.is_verified && <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs text-emerald-700">Verified</span>}
-                            {p.is_premium && <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs text-amber-700">Premium</span>}
+                            {p.is_verified && <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400">Verified</span>}
+                            {p.is_premium && <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs text-amber-700 dark:bg-amber-900/40 dark:text-amber-400">Premium</span>}
                           </div>
-                          <div className="text-sm text-slate-500">{p.district} &middot; TZS {p.rent_amount?.toLocaleString()}/mo</div>
+                          <div className="text-sm text-slate-500 dark:text-slate-400">{p.district} &middot; TZS {p.rent_amount?.toLocaleString()}/mo</div>
                           {p.current_tenant && (
                             <div className="mt-2 flex items-center gap-2 text-sm">
-                              <div className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-100 text-xs font-semibold text-emerald-700">
+                              <div className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-100 text-xs font-semibold text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400">
                                 {p.current_tenant.name?.charAt(0)}
                               </div>
-                              <span className="text-slate-700">{p.current_tenant.name}</span>
-                              <span className="text-slate-400">&middot; Since {new Date(p.current_tenant.rental_start).toLocaleDateString()}</span>
+                              <span className="text-slate-700 dark:text-slate-300">{p.current_tenant.name}</span>
+                              <span className="text-slate-400 dark:text-slate-500">&middot; Since {new Date(p.current_tenant.rental_start).toLocaleDateString()}</span>
                             </div>
                           )}
                           <div className="mt-4 flex flex-wrap items-center gap-2">
@@ -312,7 +303,7 @@ export default function Dashboard() {
                               type="button"
                               disabled={propertyActionState.propertyId === p.property_id}
                               onClick={() => handlePropertyStatus(p)}
-                              className="rounded-xl border border-slate-200 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                              className="rounded-xl border border-slate-200 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
                             >
                               {propertyActionState.propertyId === p.property_id && propertyActionState.action !== 'boost'
                                 ? p.status === 'active' ? 'Updating...' : 'Activating...'
@@ -322,7 +313,7 @@ export default function Dashboard() {
                               type="button"
                               disabled={propertyActionState.propertyId === p.property_id || p.is_premium}
                               onClick={() => handleBoostProperty(p)}
-                              className="rounded-xl border border-amber-200 px-3 py-1.5 text-sm font-medium text-amber-700 hover:bg-amber-50 disabled:opacity-50"
+                              className="rounded-xl border border-amber-200 px-3 py-1.5 text-sm font-medium text-amber-700 hover:bg-amber-50 disabled:opacity-50 dark:border-amber-800 dark:text-amber-400 dark:hover:bg-amber-900/30"
                             >
                               {propertyActionState.propertyId === p.property_id && propertyActionState.action === 'boost'
                                 ? 'Boosting...'
@@ -331,10 +322,10 @@ export default function Dashboard() {
                           </div>
                         </div>
                         <div className="flex items-center gap-3 lg:ml-4">
-                          <Link to={`/properties/${p.property_id}/edit`} className="text-sm font-medium text-emerald-700 hover:text-emerald-800">
+                          <Link to={`/properties/${p.property_id}/edit`} className="text-sm font-medium text-emerald-700 hover:text-emerald-800 dark:text-emerald-400 dark:hover:text-emerald-300">
                             Edit
                           </Link>
-                          <Link to={`/properties/${p.property_id}`} className="rounded-full border border-slate-200 bg-white/85 p-2 text-slate-400 hover:text-emerald-600">
+                          <Link to={`/properties/${p.property_id}`} className="rounded-full border border-slate-200 bg-white/85 p-2 text-slate-400 hover:text-emerald-600 dark:border-slate-700 dark:bg-slate-800 dark:hover:text-emerald-400">
                             <ChevronRight className="h-5 w-5" />
                           </Link>
                         </div>
@@ -349,9 +340,9 @@ export default function Dashboard() {
               <div className="space-y-4">
                 {pendingVerifications.length === 0 ? (
                   <div className="shell-card rounded-[1.8rem] p-12 text-center">
-                    <ShieldCheck className="mx-auto mb-3 h-12 w-12 text-slate-300" />
-                    <h3 className="mb-1 font-semibold text-slate-700">No pending user verifications</h3>
-                    <p className="text-slate-500">New renter and user submissions will appear here for admin review.</p>
+                    <ShieldCheck className="mx-auto mb-3 h-12 w-12 text-slate-300 dark:text-slate-600" />
+                    <h3 className="mb-1 font-semibold text-slate-700 dark:text-slate-300">No pending user verifications</h3>
+                    <p className="text-slate-500 dark:text-slate-400">New renter and user submissions will appear here for admin review.</p>
                   </div>
                 ) : (
                   pendingVerifications.map((pendingUser) => (
@@ -359,26 +350,26 @@ export default function Dashboard() {
                       <div className="flex flex-col gap-6 lg:flex-row">
                         <div className="flex-1 space-y-3">
                           <div className="flex items-center gap-3">
-                            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 font-semibold text-emerald-700">
+                            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 font-semibold text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400">
                               {pendingUser.full_name?.charAt(0)}
                             </div>
                             <div>
-                              <h3 className="font-semibold text-slate-950">{pendingUser.full_name}</h3>
-                              <div className="text-sm capitalize text-slate-500">{pendingUser.role}</div>
+                              <h3 className="font-semibold text-slate-950 dark:text-white">{pendingUser.full_name}</h3>
+                              <div className="text-sm capitalize text-slate-500 dark:text-slate-400">{pendingUser.role}</div>
                             </div>
                           </div>
-                          <div className="flex items-center gap-2 text-sm text-slate-600">
-                            <Phone className="h-4 w-4 text-slate-400" />
+                          <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
+                            <Phone className="h-4 w-4 text-slate-400 dark:text-slate-500" />
                             <span>{pendingUser.phone}</span>
                           </div>
-                          <div className="flex items-center gap-2 text-sm text-slate-600">
-                            <Mail className="h-4 w-4 text-slate-400" />
+                          <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
+                            <Mail className="h-4 w-4 text-slate-400 dark:text-slate-500" />
                             <span>{pendingUser.email || 'No email provided'}</span>
                           </div>
-                          <div className="text-sm text-slate-600">
-                            National ID: <span className="font-medium text-slate-800">{pendingUser.national_id || 'Not provided'}</span>
+                          <div className="text-sm text-slate-600 dark:text-slate-400">
+                            National ID: <span className="font-medium text-slate-800 dark:text-slate-200">{pendingUser.national_id || 'Not provided'}</span>
                           </div>
-                          <div className="inline-flex items-center rounded-full border border-amber-100 bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700">
+                          <div className="inline-flex items-center rounded-full border border-amber-100 bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700 dark:border-amber-800 dark:bg-amber-900/40 dark:text-amber-300">
                             Awaiting admin review
                           </div>
                           <div className="flex gap-3 pt-2">
@@ -394,7 +385,7 @@ export default function Dashboard() {
                               type="button"
                               disabled={reviewingState.userId === pendingUser.id}
                               onClick={() => handleReviewVerification(pendingUser.id, 'rejected')}
-                              className="rounded-xl border border-red-200 px-4 py-2 font-medium text-red-600 hover:bg-red-50 disabled:opacity-50"
+                              className="rounded-xl border border-red-200 px-4 py-2 font-medium text-red-600 hover:bg-red-50 disabled:opacity-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/30"
                             >
                               {reviewingState.userId === pendingUser.id && reviewingState.action === 'rejected' ? 'Rejecting...' : 'Reject'}
                             </button>
@@ -402,9 +393,9 @@ export default function Dashboard() {
                         </div>
                         <div className="lg:w-[320px]">
                           {pendingUser.profile_photo_url ? (
-                            <img src={pendingUser.profile_photo_url} alt={`${pendingUser.full_name} ID`} className="max-h-80 w-full rounded-2xl border border-slate-200 bg-slate-50 object-contain" />
+                            <img src={pendingUser.profile_photo_url} alt={`${pendingUser.full_name} ID`} className="max-h-80 w-full rounded-2xl border border-slate-200 bg-slate-50 object-contain dark:border-slate-700 dark:bg-slate-800" />
                           ) : (
-                            <div className="flex h-full min-h-48 items-center justify-center rounded-2xl border border-dashed border-slate-300 text-sm text-slate-400">
+                            <div className="flex h-full min-h-48 items-center justify-center rounded-2xl border border-dashed border-slate-300 text-sm text-slate-400 dark:border-slate-700 dark:text-slate-500">
                               No National ID image uploaded
                             </div>
                           )}

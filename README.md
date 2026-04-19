@@ -1,6 +1,6 @@
 # NyumbaSwift - Verified Rental Marketplace
 
-Dar es Salaam's verified rental marketplace. Digital rent collection, property management, and verified agents — all in one platform.
+Dar es Salaam's verified rental marketplace. Digital rent collection, property management, verified agents, and an in-app wallet — all in one platform.
 
 ## The Problem
 
@@ -8,12 +8,13 @@ Dar's rental market runs on Facebook groups and hand-painted signs. No verificat
 
 ## The Solution
 
-NyumbaSwift adds **verification**, **digital rent collection**, and **property management** in one app.
+NyumbaSwift adds **verification**, **digital rent collection**, **an in-app wallet**, and **property management** in one app.
 
 ### Key Features
 
 - **Verified Listings** — Every property goes through admin verification before going live
-- **Digital Rent Collection** — Tenants pay rent via M-Pesa, landlords track payments. Platform takes 1.5% fee
+- **Digital Rent Collection** — Tenants pay rent via mobile money. Platform takes 1.5% fee
+- **In-App Wallet** — Users hold a TZS balance, deposit via mobile money or card, withdraw to mobile money, and send to other NyumbaSwift users instantly
 - **Listing Unlock** — Renters pay TZS 5,000 to unlock landlord contact details
 - **Premium Listings** — Landlords boost visibility for TZS 20,000/month
 - **Verified Agents** — Convert brokers into "Verified Agents" who earn commissions
@@ -27,35 +28,43 @@ NyumbaSwift adds **verification**, **digital rent collection**, and **property m
 | Renter Unlock Fee | TZS 5,000 per listing contact reveal |
 | Premium Listings | TZS 20,000/month for boosted visibility |
 | Agent Commissions | Platform share from verified agent facilitated deals |
+| Wallet Float | Revenue potential from held wallet balances |
 
 ### Revenue Path to $10M
 
 - 5,000 landlord units managed
 - $3M/month rent processed = $1M+ ARR
-- Before counting renter unlock fees or premium listings
+- Before counting renter unlock fees, premium listings, or wallet float
 
 ## Tech Stack
 
 - **Backend:** Python, FastAPI
 - **Database:** SQLAlchemy ORM (SQLite dev / PostgreSQL prod)
-- **Auth:** JWT (python-jose + passlib/bcrypt)
-- **Payments:** M-Pesa integration ready
-- **Testing:** pytest
+- **Auth:** JWT (HS256)
+- **Payments:** nTZS partner API (mobile money + card deposits, withdrawals)
+- **Frontend:** React 19 + Vite + TailwindCSS 4
+- **Testing:** pytest (backend) + Vitest (frontend)
 
 ## Quick Start
 
 ```bash
-# Install dependencies
+# Install backend dependencies
 pip install -r requirements.txt
 
-# Run the server
-uvicorn app.main:app --reload
+# Copy and configure environment
+cp .env.example .env
 
-# Run tests
-pytest -v
+# Run the dev server (serves both API and built frontend)
+uvicorn app.main:app --reload
 
 # API docs
 open http://localhost:8000/docs
+
+# Run backend tests
+pytest -v
+
+# Frontend dev server
+cd frontend && npm install && npm run dev
 ```
 
 ## API Endpoints
@@ -68,12 +77,14 @@ open http://localhost:8000/docs
 | GET | `/api/v1/auth/me` | Get current user profile |
 | PATCH | `/api/v1/auth/me` | Update profile |
 | POST | `/api/v1/auth/verify` | Submit national ID for verification |
+| GET | `/api/v1/auth/verifications/pending` | Admin: pending verifications |
+| POST | `/api/v1/auth/verifications/{id}/review` | Admin: approve/reject |
 
 ### Properties
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | POST | `/api/v1/properties/` | Create listing (landlord) |
-| GET | `/api/v1/properties/` | Search listings (filter by district, type, rent, etc.) |
+| GET | `/api/v1/properties/` | Search listings (district, type, rent, bedrooms) |
 | GET | `/api/v1/properties/{id}` | Get property details |
 | PATCH | `/api/v1/properties/{id}` | Update listing |
 | POST | `/api/v1/properties/{id}/verify` | Admin verifies listing |
@@ -86,9 +97,52 @@ open http://localhost:8000/docs
 | GET | `/api/v1/rentals/my` | My rentals (tenant or landlord) |
 | POST | `/api/v1/rentals/{id}/end` | End rental |
 | POST | `/api/v1/rentals/payments` | Initiate rent payment (tenant) |
-| POST | `/api/v1/rentals/payments/{id}/confirm` | Confirm M-Pesa payment |
+| POST | `/api/v1/rentals/payments/{id}/confirm` | Confirm payment reference |
 | GET | `/api/v1/rentals/payments/history` | Payment history |
 | POST | `/api/v1/rentals/unlock` | Unlock landlord contact (TZS 5,000) |
+| GET | `/api/v1/rentals/unlock/{property_id}` | Check unlock status |
+| POST | `/api/v1/rentals/webhooks/ntzs` | nTZS webhook handler (rent/unlock) |
+
+### Wallet
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/v1/wallet/` | Get wallet balance + recent 10 transactions |
+| GET | `/api/v1/wallet/transactions` | Full transaction history |
+| POST | `/api/v1/wallet/deposit` | Initiate deposit (mobile money or card) |
+| POST | `/api/v1/wallet/deposit/{tx_id}/confirm` | Manually confirm deposit with reference |
+| POST | `/api/v1/wallet/withdraw` | Withdraw balance to mobile money |
+| POST | `/api/v1/wallet/send` | Send TZS to another NyumbaSwift user by phone |
+| POST | `/api/v1/wallet/webhooks/ntzs` | nTZS webhook handler (wallet deposits/withdrawals) |
+
+#### Deposit request body
+```json
+{
+  "amount": 50000,
+  "payment_method": "mobile_money",
+  "phone": "0712345678"
+}
+```
+or for card:
+```json
+{
+  "amount": 50000,
+  "payment_method": "card",
+  "card_number": "4111111111111111",
+  "card_expiry_month": "12",
+  "card_expiry_year": "2027",
+  "card_cvv": "123",
+  "card_holder_name": "Amina Hassan"
+}
+```
+
+#### Send request body
+```json
+{
+  "recipient_phone": "0756789012",
+  "amount": 10000,
+  "note": "Rent deposit"
+}
+```
 
 ### Verified Agents
 | Method | Endpoint | Description |
@@ -106,6 +160,25 @@ open http://localhost:8000/docs
 | GET | `/api/v1/dashboard/landlord/properties` | Landlord property details |
 | GET | `/api/v1/dashboard/admin/platform-stats` | Platform-wide stats |
 
+## Wallet Flow
+
+```
+User → Deposit (mobile money or card)
+     → nTZS processes payment
+     → Webhook fires deposit.completed → balance credited
+     → (or) User manually confirms with reference
+
+User → Withdraw
+     → Balance reserved immediately
+     → nTZS sends to mobile money
+     → Webhook fires withdrawal.completed → finalized
+     → (on failure) webhook fires withdrawal.failed → balance refunded
+
+User → Send to User
+     → Instant in-platform transfer (no nTZS call)
+     → Sender balance debited, recipient balance credited atomically
+```
+
 ## Project Structure
 
 ```
@@ -116,15 +189,27 @@ app/
 │   ├── rentals.py     # Rentals, payments, unlock
 │   ├── agents.py      # Verified agent system
 │   ├── dashboard.py   # Management dashboards
+│   ├── wallet.py      # Wallet: deposit, withdraw, send, webhooks
 │   └── deps.py        # Auth dependencies
 ├── models/        # SQLAlchemy models
 │   ├── user.py        # Users with roles & verification
 │   ├── property.py    # Properties & photos
 │   ├── rental.py      # Rentals, payments, unlocks
-│   └── agent.py       # Agent profiles
+│   ├── agent.py       # Agent profiles
+│   └── wallet.py      # Wallet + WalletTransaction
 ├── schemas/       # Pydantic request/response models
+│   └── wallet.py      # Wallet schemas
+├── services/
+│   └── ntzs.py        # nTZS partner API (deposits, withdrawals, card)
 ├── core/          # Config, database, security
 └── main.py        # FastAPI app entry point
+frontend/src/
+├── pages/
+│   └── Wallet.jsx     # Wallet UI (balance, deposit, withdraw, send, history)
+├── services/
+│   └── api.js         # API client including wallet.*
+└── components/
+    └── Navbar.jsx     # Wallet link for authenticated users
 tests/             # Full test suite
 ```
 
@@ -138,10 +223,15 @@ Brokers already know the market. Instead of fighting them, NyumbaSwift gives the
 
 Copy `.env.example` to `.env` and configure:
 
-```
+```env
 DATABASE_URL=sqlite:///./nyumbaswift.db
 SECRET_KEY=your-secret-key-here
-MPESA_API_KEY=your-mpesa-key
-MPESA_PUBLIC_KEY=your-mpesa-public-key
-MPESA_SERVICE_PROVIDER_CODE=your-sp-code
+
+# nTZS Partner API (required for payments and wallet)
+NTZS_API_KEY=your-ntzs-api-key
+NTZS_WEBHOOK_SECRET=your-webhook-secret
+NTZS_BASE_URL=https://www.ntzs.co.tz
+
+# Public URL for webhook callbacks
+PUBLIC_BASE_URL=https://nyumbaswift.vercel.app
 ```

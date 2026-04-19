@@ -52,3 +52,4 @@ class User(Base):
         "Rental", back_populates="tenant", foreign_keys="Rental.tenant_id"
     )
     unlocked_listings = relationship("ListingUnlock", back_populates="renter")
+    wallet = relationship("Wallet", back_populates="user", uselist=False)
