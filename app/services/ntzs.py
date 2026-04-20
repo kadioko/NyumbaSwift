@@ -183,7 +183,6 @@ async def create_wallet_deposit_mobile(
         "amountTzs": amount,
         "paymentMethod": "mobile_money",
         "phoneNumber": normalized_phone,
-        "collectToTreasury": True,
     }
 
     async with httpx.AsyncClient(timeout=30.0) as client:

@@ -41,6 +41,54 @@ def _provider_status(value: str | None) -> str:
     return (value or "").strip().lower().replace("-", "_")
 
 
+def _local_completed_balance(wallet_id: int, db: Session) -> int:
+    completed = (
+        db.query(WalletTransaction)
+        .filter(
+            WalletTransaction.wallet_id == wallet_id,
+            WalletTransaction.status == TransactionStatus.COMPLETED,
+        )
+        .all()
+    )
+    balance = 0
+    for txn in completed:
+        if txn.type in {TransactionType.DEPOSIT, TransactionType.TRANSFER_IN}:
+            balance += txn.amount
+        elif txn.type in {TransactionType.WITHDRAWAL, TransactionType.TRANSFER_OUT}:
+            balance -= txn.amount
+    return balance
+
+
+def _reconcile_completed_deposits(wallet: Wallet, live_balance_tzs: int, db: Session):
+    accounted_balance = _local_completed_balance(wallet.id, db)
+    missing_inflow = max(int(live_balance_tzs or 0) - accounted_balance, 0)
+    if missing_inflow <= 0:
+        return
+
+    processing_deposits = (
+        db.query(WalletTransaction)
+        .filter(
+            WalletTransaction.wallet_id == wallet.id,
+            WalletTransaction.type == TransactionType.DEPOSIT,
+            WalletTransaction.status.in_([TransactionStatus.PENDING, TransactionStatus.PROCESSING]),
+        )
+        .order_by(WalletTransaction.created_at.asc())
+        .all()
+    )
+    changed = False
+    for txn in processing_deposits:
+        if txn.amount <= missing_inflow:
+            txn.status = TransactionStatus.COMPLETED
+            txn.completed_at = txn.completed_at or datetime.now(timezone.utc)
+            missing_inflow -= txn.amount
+            changed = True
+        if missing_inflow <= 0:
+            break
+
+    if changed:
+        db.commit()
+
+
 async def _sync_wallet_balance(user: User, wallet: Wallet, db: Session):
     if not user.email:
         return wallet, None
@@ -51,7 +99,9 @@ async def _sync_wallet_balance(user: User, wallet: Wallet, db: Session):
         full_name=user.full_name,
         phone=user.phone,
     )
-    wallet.balance_tzs = int(profile.get("balanceTzs") or profile.get("balance") or 0)
+    live_balance_tzs = int(profile.get("balanceTzs") or profile.get("balance") or 0)
+    _reconcile_completed_deposits(wallet, live_balance_tzs, db)
+    wallet.balance_tzs = live_balance_tzs
     wallet.updated_at = datetime.now(timezone.utc)
     db.commit()
     db.refresh(wallet)
@@ -229,6 +279,13 @@ async def confirm_deposit(
     try:
         provider = await ntzs_service.get_payment_status(txn.ntzs_reference)
     except NTZSError as exc:
+        await _sync_wallet_balance(current_user, wallet, db)
+        db.refresh(txn)
+        if txn.status == TransactionStatus.COMPLETED:
+            return _serialize_txn(
+                txn,
+                provider_message="Deposit confirmed from live wallet balance.",
+            )
         raise HTTPException(status_code=502, detail=str(exc)) from exc
 
     status_value = _provider_status(provider.get("status"))
