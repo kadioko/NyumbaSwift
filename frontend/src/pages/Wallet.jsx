@@ -560,7 +560,7 @@ export default function Wallet() {
                 <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">Amount (TZS)</label>
                 <input
                   type="number"
-                  min="1000"
+                  min="5000"
                   max={balance}
                   placeholder="e.g. 20000"
                   value={withdrawForm.amount}
@@ -568,7 +568,7 @@ export default function Wallet() {
                   className={inputStyles()}
                   required
                 />
-                <p className="mt-1 text-xs text-slate-400">Minimum TZS 1,000 &middot; Maximum TZS {fmt(balance)}</p>
+                <p className="mt-1 text-xs text-slate-400">Minimum TZS 5,000 &middot; Maximum TZS {fmt(balance)}</p>
               </div>
 
               <div>
@@ -585,7 +585,7 @@ export default function Wallet() {
 
               <button
                 type="submit"
-                disabled={withdrawing || balance === 0}
+                disabled={withdrawing || balance < 5000}
                 className={buttonStyles({ fullWidth: true })}
               >
                 {withdrawing ? 'Processing...' : 'Withdraw to Mobile Money'}
