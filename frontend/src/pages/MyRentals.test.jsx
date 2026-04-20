@@ -8,10 +8,13 @@ vi.mock('../services/api', () => ({
     pay: vi.fn(),
     confirmPayment: vi.fn(),
   },
+  wallet: {
+    get: vi.fn(),
+  },
 }))
 
 import MyRentals from './MyRentals'
-import { rentals as rentalApi } from '../services/api'
+import { rentals as rentalApi, wallet as walletApi } from '../services/api'
 
 const rental = {
   id: 44,
@@ -38,6 +41,7 @@ describe('MyRentals payment UX', () => {
     rentalApi.paymentHistory.mockResolvedValue([])
     rentalApi.pay.mockResolvedValue(paymentRequest)
     rentalApi.confirmPayment.mockResolvedValue({ ok: true })
+    walletApi.get.mockResolvedValue({ balance_tzs: 600000 })
   })
 
   it('initiates payment and switches to confirmation mode', async () => {
@@ -55,6 +59,7 @@ describe('MyRentals payment UX', () => {
       expect(rentalApi.pay).toHaveBeenCalledWith({
         rental_id: 44,
         payment_month: expect.stringMatching(/^\d{4}-\d{2}$/),
+        payment_source: 'mobile_money',
       })
     })
 
@@ -112,5 +117,33 @@ describe('MyRentals payment UX', () => {
     expect(screen.getByRole('button', { name: 'Initiate Payment' })).toBeInTheDocument()
     expect(rentalApi.my).toHaveBeenCalledTimes(2)
     expect(rentalApi.paymentHistory).toHaveBeenCalledTimes(2)
+  })
+
+  it('pays rent directly from wallet balance', async () => {
+    rentalApi.pay.mockResolvedValueOnce({
+      ...paymentRequest,
+      status: 'completed',
+    })
+
+    render(<MyRentals />)
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'pay rent' })).toBeInTheDocument()
+    })
+
+    openPayRentTab()
+    fireEvent.click(screen.getByRole('button', { name: 'Wallet balance' }))
+    fireEvent.change(screen.getByRole('combobox'), { target: { value: '44' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Pay from Wallet' }))
+
+    await waitFor(() => {
+      expect(rentalApi.pay).toHaveBeenCalledWith({
+        rental_id: 44,
+        payment_month: expect.stringMatching(/^\d{4}-\d{2}$/),
+        payment_source: 'wallet',
+      })
+    })
+
+    expect(await screen.findByText('Rent paid successfully from your NyumbaSwift wallet.')).toBeInTheDocument()
   })
 })

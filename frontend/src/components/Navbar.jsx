@@ -1,14 +1,22 @@
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/useAuth'
 import { useTheme } from '../context/ThemeContext'
-import { Home, Search, LayoutDashboard, Users, LogOut, Menu, X, ShieldCheck, Sparkles, Wallet, Moon, Sun } from 'lucide-react'
-import { useState } from 'react'
+import { Home, Search, LayoutDashboard, Users, LogOut, Menu, X, ShieldCheck, Sparkles, Wallet, Moon, Sun, RefreshCw } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { wallet as walletApi } from '../services/api'
+
+function fmt(n) {
+  return (n ?? 0).toLocaleString()
+}
 
 export default function Navbar() {
   const { user, logout } = useAuth()
   const { isDark, toggle } = useTheme()
   const navigate = useNavigate()
+  const location = useLocation()
   const [open, setOpen] = useState(false)
+  const [walletBalance, setWalletBalance] = useState(null)
+  const [loadingBalance, setLoadingBalance] = useState(false)
 
   const handleLogout = () => {
     logout()
@@ -17,6 +25,41 @@ export default function Navbar() {
 
   const isLandlord = user?.role === 'landlord' || user?.role === 'admin'
   const isAdmin = user?.role === 'admin'
+
+  useEffect(() => {
+    let active = true
+
+    async function loadBalance() {
+      if (!user) {
+        setWalletBalance(null)
+        return
+      }
+      setLoadingBalance(true)
+      try {
+        const data = await walletApi.get()
+        if (active) {
+          setWalletBalance(data.balance_tzs ?? 0)
+        }
+      } catch {
+        if (active) {
+          setWalletBalance(null)
+        }
+      } finally {
+        if (active) {
+          setLoadingBalance(false)
+        }
+      }
+    }
+
+    loadBalance()
+
+    const handleWalletUpdated = () => loadBalance()
+    window.addEventListener('nyumbaswift:wallet-updated', handleWalletUpdated)
+    return () => {
+      active = false
+      window.removeEventListener('nyumbaswift:wallet-updated', handleWalletUpdated)
+    }
+  }, [user, location.pathname])
 
   return (
     <nav className="navbar-bar sticky top-0 z-50 border-b border-white/30 bg-white/72 backdrop-blur-xl supports-[backdrop-filter]:bg-white/62 dark:border-white/8 dark:bg-slate-950/80">
@@ -64,6 +107,23 @@ export default function Navbar() {
                   <Wallet className="w-4 h-4" />
                   <span>Wallet</span>
                 </Link>
+                <div className="inline-flex items-center gap-1 rounded-2xl border border-emerald-100 bg-emerald-50/90 p-1 text-sm font-semibold text-emerald-900 shadow-sm dark:border-emerald-900/50 dark:bg-emerald-900/30 dark:text-emerald-300">
+                  <Link
+                    to="/wallet"
+                    className="inline-flex items-center gap-2 rounded-[1rem] px-2.5 py-1.5 transition-colors hover:bg-white/70 dark:hover:bg-emerald-900/50"
+                  >
+                    <Wallet className="h-4 w-4" />
+                    <span>{loadingBalance ? 'Loading balance...' : `TZS ${fmt(walletBalance)}`}</span>
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => window.dispatchEvent(new CustomEvent('nyumbaswift:wallet-updated'))}
+                    className="rounded-full p-1.5 text-emerald-700/70 hover:bg-white/70 dark:text-emerald-300"
+                    title="Refresh wallet balance"
+                  >
+                    <RefreshCw className={`h-3.5 w-3.5 ${loadingBalance ? 'animate-spin' : ''}`} />
+                  </button>
+                </div>
                 <div className="ml-2 flex items-center gap-3 border-l border-slate-200/80 pl-4 dark:border-slate-700">
                   <Link to="/profile" className="flex items-center gap-3 rounded-2xl border border-white/80 bg-white/80 px-3 py-2 shadow-sm transition-colors hover:border-emerald-200 hover:bg-emerald-50/70 dark:border-slate-700 dark:bg-slate-800 dark:hover:border-emerald-700 dark:hover:bg-slate-700">
                     <div className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-100 text-sm font-semibold text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-400">
@@ -96,10 +156,11 @@ export default function Navbar() {
             {/* Theme toggle */}
             <button
               onClick={toggle}
-              className="ml-1 rounded-full border border-slate-200 bg-white/80 p-2 text-slate-500 transition-colors hover:border-slate-300 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400 dark:hover:border-slate-600 dark:hover:bg-slate-700"
+              className="ml-1 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/90 px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:border-slate-300 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-slate-600 dark:hover:bg-slate-700"
               title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
             >
               {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+              <span>{isDark ? 'Light mode' : 'Dark mode'}</span>
             </button>
           </div>
 
@@ -107,9 +168,10 @@ export default function Navbar() {
             {/* Mobile theme toggle */}
             <button
               onClick={toggle}
-              className="rounded-full border border-slate-200 bg-white/80 p-2 text-slate-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400"
+              className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/90 px-3 py-2 text-sm font-medium text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
             >
               {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+              <span>{isDark ? 'Light' : 'Dark'}</span>
             </button>
             <button onClick={() => setOpen(!open)} className="flex items-center rounded-2xl border border-slate-200 bg-white/80 p-2 text-slate-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400">
               {open ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}

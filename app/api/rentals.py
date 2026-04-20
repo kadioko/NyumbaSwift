@@ -17,6 +17,7 @@ from app.models.rental import (
     RentalStatus,
 )
 from app.models.user import User
+from app.models.wallet import TransactionStatus, TransactionType, Wallet, WalletTransaction
 from app.schemas.rental import (
     ListingUnlockCreate,
     ListingUnlockResponse,
@@ -25,7 +26,14 @@ from app.schemas.rental import (
     RentPaymentCreate,
     RentPaymentResponse,
 )
-from app.services.ntzs import NTZSError, create_mobile_payment, get_payment_status, verify_webhook_signature
+from app.services.ntzs import (
+    NTZSError,
+    create_mobile_payment,
+    create_transfer,
+    get_ntzs_user,
+    get_payment_status,
+    verify_webhook_signature,
+)
 
 router = APIRouter(prefix="/rentals", tags=["Rentals & Payments"])
 
@@ -108,6 +116,16 @@ def _build_unlock_response(
         already_unlocked=already_unlocked,
         created_at=unlock.created_at,
     )
+
+
+def _get_or_create_wallet(user_id: int, db: Session) -> Wallet:
+    wallet = db.query(Wallet).filter(Wallet.user_id == user_id).first()
+    if not wallet:
+        wallet = Wallet(user_id=user_id, balance_tzs=0)
+        db.add(wallet)
+        db.commit()
+        db.refresh(wallet)
+    return wallet
 
 
 # --- Rental Management ---
@@ -205,20 +223,121 @@ async def initiate_rent_payment(
         )
 
     amount = rental.monthly_rent
-    platform_fee = math.ceil(amount * settings.RENT_COLLECTION_FEE_PERCENT / 100)
-    landlord_payout = amount - platform_fee
+    estimated_platform_fee = math.ceil(amount * settings.RENT_COLLECTION_FEE_PERCENT / 100)
+    estimated_landlord_payout = amount - estimated_platform_fee
 
     payment = RentPayment(
         rental_id=rental.id,
         amount=amount,
-        platform_fee=platform_fee,
-        landlord_payout=landlord_payout,
+        platform_fee=estimated_platform_fee,
+        landlord_payout=estimated_landlord_payout,
         payment_month=data.payment_month,
         status=PaymentStatus.PENDING,
     )
     db.add(payment)
     db.commit()
     db.refresh(payment)
+
+    if data.payment_source == "wallet":
+        landlord = db.query(User).filter(User.id == rental.landlord_id).first()
+        if not landlord or not landlord.email:
+            payment.status = PaymentStatus.FAILED
+            payment.notes = "Landlord must add an email before wallet payments can be accepted"
+            db.commit()
+            raise HTTPException(
+                status_code=400,
+                detail="The landlord must add an email before wallet payments can be accepted.",
+            )
+
+        try:
+            sender_profile = await get_ntzs_user(
+                user_id=current_user.id,
+                email=current_user.email,
+                full_name=current_user.full_name,
+                phone=current_user.phone,
+            )
+            available_balance = int(sender_profile.get("balanceTzs") or sender_profile.get("balance") or 0)
+            if available_balance < payment.amount:
+                payment.status = PaymentStatus.FAILED
+                payment.notes = "Insufficient wallet balance"
+                db.commit()
+                raise HTTPException(status_code=400, detail="Insufficient wallet balance. Top up your wallet and try again.")
+
+            transfer_result = await create_transfer(
+                from_user_id=current_user.id,
+                to_user_id=landlord.id,
+                amount=payment.amount,
+                sender_email=current_user.email,
+                sender_name=current_user.full_name,
+                sender_phone=current_user.phone,
+                recipient_email=landlord.email,
+                recipient_name=landlord.full_name,
+                recipient_phone=landlord.phone,
+                metadata={
+                    "payment_id": str(payment.id),
+                    "rental_id": str(rental.id),
+                    "payment_month": data.payment_month,
+                    "purpose": "rent_payment_wallet",
+                },
+            )
+        except NTZSError as exc:
+            payment.status = PaymentStatus.FAILED
+            payment.notes = str(exc)
+            db.commit()
+            raise HTTPException(status_code=502, detail=str(exc)) from exc
+
+        payment.status = PaymentStatus.COMPLETED
+        payment.platform_fee = int(transfer_result.get("feeAmountTzs") or estimated_platform_fee)
+        payment.landlord_payout = int(transfer_result.get("recipientAmountTzs") or (payment.amount - payment.platform_fee))
+        payment.mpesa_reference = str(transfer_result.get("id") or transfer_result.get("txHash") or f"wallet-rent-{payment.id}")
+        payment.paid_at = datetime.now(timezone.utc)
+        payment.notes = "Paid from NyumbaSwift wallet"
+
+        sender_wallet = _get_or_create_wallet(current_user.id, db)
+        landlord_wallet = _get_or_create_wallet(landlord.id, db)
+        now = datetime.now(timezone.utc)
+        db.add(
+            WalletTransaction(
+                wallet_id=sender_wallet.id,
+                type=TransactionType.TRANSFER_OUT,
+                amount=payment.amount,
+                status=TransactionStatus.COMPLETED,
+                ntzs_reference=str(transfer_result.get("id")),
+                peer_wallet_id=landlord_wallet.id,
+                description=f"Rent payment for {data.payment_month} on rental #{rental.id}",
+                completed_at=now,
+            )
+        )
+        db.add(
+            WalletTransaction(
+                wallet_id=landlord_wallet.id,
+                type=TransactionType.TRANSFER_IN,
+                amount=payment.landlord_payout,
+                status=TransactionStatus.COMPLETED,
+                ntzs_reference=str(transfer_result.get("id")),
+                peer_wallet_id=sender_wallet.id,
+                description=f"Rent received for {data.payment_month} on rental #{rental.id}",
+                completed_at=now,
+            )
+        )
+
+        refreshed_sender = await get_ntzs_user(
+            user_id=current_user.id,
+            email=current_user.email,
+            full_name=current_user.full_name,
+            phone=current_user.phone,
+        )
+        refreshed_landlord = await get_ntzs_user(
+            user_id=landlord.id,
+            email=landlord.email,
+            full_name=landlord.full_name,
+            phone=landlord.phone,
+        )
+        sender_wallet.balance_tzs = int(refreshed_sender.get("balanceTzs") or refreshed_sender.get("balance") or 0)
+        landlord_wallet.balance_tzs = int(refreshed_landlord.get("balanceTzs") or refreshed_landlord.get("balance") or 0)
+        db.commit()
+        db.refresh(payment)
+        return payment
 
     try:
         provider_payment = await create_mobile_payment(

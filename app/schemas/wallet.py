@@ -24,6 +24,8 @@ class WalletTransactionResponse(BaseModel):
     ntzs_reference: str | None
     description: str | None
     payment_method: str | None
+    payment_url: str | None = None
+    provider_message: str | None = None
     completed_at: datetime | None
     created_at: datetime
 
@@ -34,6 +36,8 @@ class WalletDetailResponse(BaseModel):
     id: int
     user_id: int
     balance_tzs: int
+    balance_usdc: float | None = None
+    wallet_address: str | None = None
     updated_at: datetime
     recent_transactions: list[WalletTransactionResponse] = []
 
@@ -45,18 +49,15 @@ class DepositRequest(BaseModel):
     payment_method: Literal["mobile_money", "card"]
     # mobile money fields
     phone: str | None = None
-    # card fields
-    card_number: str | None = None
-    card_expiry_month: str | None = None
-    card_expiry_year: str | None = None
-    card_cvv: str | None = None
-    card_holder_name: str | None = None
+    # card checkout fields
+    redirect_url: str | None = None
+    cancel_url: str | None = None
 
     @field_validator("amount")
     @classmethod
     def validate_amount(cls, v: int) -> int:
-        if v < 1000:
-            raise ValueError("Minimum deposit is TZS 1,000")
+        if v < 500:
+            raise ValueError("Minimum deposit is TZS 500")
         if v > 10_000_000:
             raise ValueError("Maximum single deposit is TZS 10,000,000")
         return v
@@ -69,8 +70,8 @@ class WithdrawRequest(BaseModel):
     @field_validator("amount")
     @classmethod
     def validate_amount(cls, v: int) -> int:
-        if v < 1000:
-            raise ValueError("Minimum withdrawal is TZS 1,000")
+        if v < 5000:
+            raise ValueError("Minimum withdrawal is TZS 5,000")
         return v
 
 

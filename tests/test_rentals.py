@@ -133,6 +133,21 @@ def test_duplicate_payment_blocked(client, mock_snippe_processing):
     assert resp.status_code == 400
 
 
+def test_pay_rent_from_wallet_balance(client, mock_wallet_ntzs):
+    landlord_token, tenant_token, prop_id, rental_id = setup_rental(client)
+
+    resp = client.post(
+        "/api/v1/rentals/payments",
+        headers=auth_header(tenant_token),
+        json={"rental_id": rental_id, "payment_month": "2026-03", "payment_source": "wallet"},
+    )
+
+    assert resp.status_code == 201
+    data = resp.json()
+    assert data["status"] == "completed"
+    assert data["mpesa_reference"] == "transfer-1"
+
+
 def test_initiate_rent_payment_requires_email(client):
     landlord_resp = register_user(
         client, phone="0712100011", name="Landlord", role="landlord", email="landlord2@example.com"

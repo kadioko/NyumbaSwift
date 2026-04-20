@@ -83,7 +83,7 @@ export default function Wallet() {
 
   // Deposit state
   const [depositMethod, setDepositMethod] = useState('mobile_money')
-  const [depositForm, setDepositForm] = useState({ amount: '', phone: '', card_number: '', card_expiry_month: '', card_expiry_year: '', card_cvv: '', card_holder_name: '' })
+  const [depositForm, setDepositForm] = useState({ amount: '', phone: '' })
   const [depositing, setDepositing] = useState(false)
   const [depositResult, setDepositResult] = useState(null)
   const [confirmRef, setConfirmRef] = useState('')
@@ -105,6 +105,7 @@ export default function Wallet() {
       const [w, txns] = await Promise.all([walletApi.get(), walletApi.transactions()])
       setWalletData(w)
       setAllTxns(txns)
+      window.dispatchEvent(new CustomEvent('nyumbaswift:wallet-updated'))
     } catch (err) {
       setError(err.message || 'Could not load wallet data.')
     } finally {
@@ -129,18 +130,15 @@ export default function Wallet() {
         ...(depositMethod === 'mobile_money'
           ? { phone: depositForm.phone }
           : {
-              card_number: depositForm.card_number,
-              card_expiry_month: depositForm.card_expiry_month,
-              card_expiry_year: depositForm.card_expiry_year,
-              card_cvv: depositForm.card_cvv,
-              card_holder_name: depositForm.card_holder_name,
+              redirect_url: `${window.location.origin}/wallet?deposit=success`,
+              cancel_url: `${window.location.origin}/wallet?deposit=cancelled`,
             }),
       }
       const result = await walletApi.deposit(payload)
       setDepositResult(result)
       setSuccess(depositMethod === 'mobile_money'
-        ? 'Deposit initiated! Complete the mobile money prompt on your phone, then confirm the reference below if needed.'
-        : 'Card deposit initiated! Once confirmed, your balance will be updated.')
+        ? 'Deposit initiated! Complete the mobile money prompt on your phone, then refresh your wallet balance.'
+        : 'Card deposit started. Continue to the secure checkout, then return and refresh your wallet balance.')
     } catch (err) {
       setError(err.message)
     } finally {
@@ -156,8 +154,9 @@ export default function Wallet() {
       await walletApi.confirmDeposit(depositResult.id, { ntzs_reference: confirmRef })
       setDepositResult(null)
       setConfirmRef('')
-      setDepositForm({ amount: '', phone: '', card_number: '', card_expiry_month: '', card_expiry_year: '', card_cvv: '', card_holder_name: '' })
+      setDepositForm({ amount: '', phone: '' })
       await loadWallet(true)
+      window.dispatchEvent(new CustomEvent('nyumbaswift:wallet-updated'))
       setSuccess('Deposit confirmed! Your balance has been updated.')
       setTab(TAB_OVERVIEW)
     } catch (err) {
@@ -175,6 +174,7 @@ export default function Wallet() {
       await walletApi.withdraw({ amount: Number(withdrawForm.amount), phone: withdrawForm.phone })
       setWithdrawForm({ amount: '', phone: '' })
       await loadWallet(true)
+      window.dispatchEvent(new CustomEvent('nyumbaswift:wallet-updated'))
       setSuccess('Withdrawal initiated! Funds will arrive on your mobile money shortly.')
       setTab(TAB_OVERVIEW)
     } catch (err) {
@@ -192,6 +192,7 @@ export default function Wallet() {
       await walletApi.send({ recipient_phone: sendForm.recipient_phone, amount: Number(sendForm.amount), note: sendForm.note || undefined })
       setSendForm({ recipient_phone: '', amount: '', note: '' })
       await loadWallet(true)
+      window.dispatchEvent(new CustomEvent('nyumbaswift:wallet-updated'))
       setSuccess(`TZS ${Number(sendForm.amount).toLocaleString()} sent successfully!`)
       setTab(TAB_OVERVIEW)
     } catch (err) {
@@ -228,6 +229,8 @@ export default function Wallet() {
   }
 
   const balance = walletData?.balance_tzs ?? 0
+  const walletAddress = walletData?.wallet_address
+  const stablecoinBalance = walletData?.balance_usdc
   const recent = walletData?.recent_transactions ?? []
 
   return (
@@ -262,6 +265,16 @@ export default function Wallet() {
                 <div className="text-3xl font-bold text-slate-950 dark:text-white">
                   TZS {fmt(balance)}
                 </div>
+                {walletAddress && (
+                  <div className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+                    Wallet: <span className="font-mono">{walletAddress.slice(0, 8)}...{walletAddress.slice(-6)}</span>
+                  </div>
+                )}
+                {stablecoinBalance != null && (
+                  <div className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                    USDC balance: <span className="font-semibold">{stablecoinBalance}</span>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -391,9 +404,11 @@ export default function Wallet() {
                   <ArrowDownCircle className="mx-auto mb-2 h-10 w-10 text-emerald-600" />
                   <h3 className="font-semibold text-slate-950 dark:text-white">Deposit Initiated</h3>
                   <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                    {depositMethod === 'mobile_money'
-                      ? 'Complete the mobile money prompt on your phone, then enter the reference below.'
-                      : 'Your card is being processed. Enter the reference once you receive it.'}
+                    {depositResult.provider_message || (
+                      depositMethod === 'mobile_money'
+                        ? 'Complete the mobile money prompt on your phone, then refresh your wallet balance.'
+                        : 'Continue to the secure card checkout, then return and refresh your wallet balance.'
+                    )}
                   </p>
                 </div>
                 <div className="rounded-[1.2rem] bg-slate-50 p-4 space-y-2 text-sm dark:bg-slate-800">
@@ -404,16 +419,33 @@ export default function Wallet() {
                   )}
                 </div>
                 <div className="space-y-3">
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Confirm with Reference</label>
-                  <input
-                    type="text"
-                    placeholder="Payment reference (e.g. T1234ABCD)"
-                    value={confirmRef}
-                    onChange={(e) => setConfirmRef(e.target.value.toUpperCase())}
-                    className={inputStyles()}
-                  />
-                  <button onClick={handleConfirmDeposit} disabled={confirming || !confirmRef} className={buttonStyles({ fullWidth: true })}>
-                    {confirming ? 'Confirming...' : 'Confirm Deposit'}
+                  {depositResult.payment_url && (
+                    <a
+                      href={depositResult.payment_url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className={buttonStyles({ fullWidth: true })}
+                    >
+                      Continue to Card Checkout
+                    </a>
+                  )}
+                  {!depositResult.payment_url && (
+                    <>
+                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Optional manual confirmation</label>
+                      <input
+                        type="text"
+                        placeholder="Payment reference (e.g. T1234ABCD)"
+                        value={confirmRef}
+                        onChange={(e) => setConfirmRef(e.target.value.toUpperCase())}
+                        className={inputStyles()}
+                      />
+                      <button onClick={handleConfirmDeposit} disabled={confirming || !confirmRef} className={buttonStyles({ fullWidth: true })}>
+                        {confirming ? 'Confirming...' : 'Confirm Deposit'}
+                      </button>
+                    </>
+                  )}
+                  <button onClick={() => loadWallet(true)} className={buttonStyles({ variant: 'secondary', fullWidth: true })}>
+                    Refresh Wallet Balance
                   </button>
                   <button onClick={() => { setDepositResult(null); setConfirmRef('') }} className={buttonStyles({ variant: 'secondary', fullWidth: true })}>
                     Cancel
@@ -475,72 +507,8 @@ export default function Wallet() {
                 )}
 
                 {depositMethod === 'card' && (
-                  <div className="space-y-4">
-                    <div>
-                      <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">Card Number</label>
-                      <input
-                        type="text"
-                        placeholder="1234 5678 9012 3456"
-                        maxLength={19}
-                        value={depositForm.card_number}
-                        onChange={(e) => {
-                          const v = e.target.value.replace(/\D/g, '').slice(0, 16)
-                          const fmt = v.match(/.{1,4}/g)?.join(' ') || v
-                          setDepositForm({ ...depositForm, card_number: fmt })
-                        }}
-                        className={inputStyles('font-mono tracking-widest')}
-                        required
-                      />
-                    </div>
-                    <div className="grid grid-cols-3 gap-3">
-                      <div>
-                        <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">Month</label>
-                        <input
-                          type="text"
-                          placeholder="MM"
-                          maxLength={2}
-                          value={depositForm.card_expiry_month}
-                          onChange={(e) => setDepositForm({ ...depositForm, card_expiry_month: e.target.value.replace(/\D/g, '') })}
-                          className={inputStyles('text-center')}
-                          required
-                        />
-                      </div>
-                      <div>
-                        <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">Year</label>
-                        <input
-                          type="text"
-                          placeholder="YYYY"
-                          maxLength={4}
-                          value={depositForm.card_expiry_year}
-                          onChange={(e) => setDepositForm({ ...depositForm, card_expiry_year: e.target.value.replace(/\D/g, '') })}
-                          className={inputStyles('text-center')}
-                          required
-                        />
-                      </div>
-                      <div>
-                        <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">CVV</label>
-                        <input
-                          type="password"
-                          placeholder="•••"
-                          maxLength={4}
-                          value={depositForm.card_cvv}
-                          onChange={(e) => setDepositForm({ ...depositForm, card_cvv: e.target.value.replace(/\D/g, '') })}
-                          className={inputStyles('text-center')}
-                          required
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">Cardholder Name</label>
-                      <input
-                        type="text"
-                        placeholder="As on card"
-                        value={depositForm.card_holder_name}
-                        onChange={(e) => setDepositForm({ ...depositForm, card_holder_name: e.target.value })}
-                        className={inputStyles()}
-                        required
-                      />
-                    </div>
+                  <div className="rounded-[1.2rem] border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300">
+                    Card deposits use nTZS&apos;s hosted checkout. After you submit the amount, we&apos;ll give you a secure payment link and you can return here to refresh your wallet balance.
                   </div>
                 )}
 

@@ -46,6 +46,16 @@ def _parse_json(response: httpx.Response) -> dict:
     return data
 
 
+def _auth_headers(*, idempotency_key: str | None = None) -> dict:
+    headers = {
+        "Authorization": f"Bearer {settings.NTZS_API_KEY}",
+        "Content-Type": "application/json",
+    }
+    if idempotency_key:
+        headers["Idempotency-Key"] = idempotency_key
+    return headers
+
+
 async def ensure_ntzs_user(*, external_id: str, email: str, full_name: str, phone: str | None):
     if not settings.NTZS_API_KEY:
         raise NTZSError("nTZS API key is not configured")
@@ -60,11 +70,7 @@ async def ensure_ntzs_user(*, external_id: str, email: str, full_name: str, phon
     if normalized_phone:
         payload["phone"] = normalized_phone
 
-    headers = {
-        "Authorization": f"Bearer {settings.NTZS_API_KEY}",
-        "Content-Type": "application/json",
-        "Idempotency-Key": f"user-{external_id}",
-    }
+    headers = _auth_headers(idempotency_key=f"user-{external_id}")
 
     async with httpx.AsyncClient(timeout=30.0) as client:
         response = await client.post(f"{settings.NTZS_BASE_URL}/api/v1/users", json=payload, headers=headers)
@@ -74,6 +80,37 @@ async def ensure_ntzs_user(*, external_id: str, email: str, full_name: str, phon
         return data
 
     raise NTZSError(_error_message(data, "Failed to provision nTZS user"))
+
+
+async def get_ntzs_user(
+    *,
+    user_id: int | None = None,
+    external_id: str | None = None,
+    email: str,
+    full_name: str,
+    phone: str | None,
+):
+    if user_id is None and external_id is None:
+        raise NTZSError("A user identifier is required")
+
+    user = await ensure_ntzs_user(
+        external_id=str(external_id or user_id),
+        email=email,
+        full_name=full_name,
+        phone=phone,
+    )
+
+    async with httpx.AsyncClient(timeout=30.0) as client:
+        response = await client.get(
+            f"{settings.NTZS_BASE_URL}/api/v1/users/{user['id']}",
+            headers=_auth_headers(),
+        )
+
+    data = _parse_json(response)
+    if response.is_success and data.get("id"):
+        return data
+
+    raise NTZSError(_error_message(data, "Failed to fetch nTZS user profile"))
 
 
 async def create_mobile_payment(*, amount: int, phone: str, full_name: str, email: str | None, reference: str, metadata: dict):
@@ -101,9 +138,7 @@ async def create_mobile_payment(*, amount: int, phone: str, full_name: str, emai
     }
 
     headers = {
-        "Authorization": f"Bearer {settings.NTZS_API_KEY}",
-        "Content-Type": "application/json",
-        "Idempotency-Key": str(uuid.uuid4()),
+        **_auth_headers(idempotency_key=str(uuid.uuid4())),
     }
 
     async with httpx.AsyncClient(timeout=30.0) as client:
@@ -151,14 +186,12 @@ async def create_wallet_deposit_mobile(
         "collectToTreasury": True,
     }
 
-    headers = {
-        "Authorization": f"Bearer {settings.NTZS_API_KEY}",
-        "Content-Type": "application/json",
-        "Idempotency-Key": str(uuid.uuid4()),
-    }
-
     async with httpx.AsyncClient(timeout=30.0) as client:
-        response = await client.post(f"{settings.NTZS_BASE_URL}/api/v1/deposits", json=payload, headers=headers)
+        response = await client.post(
+            f"{settings.NTZS_BASE_URL}/api/v1/deposits",
+            json=payload,
+            headers=_auth_headers(idempotency_key=str(uuid.uuid4())),
+        )
 
     data = _parse_json(response)
     if response.is_success and data.get("id"):
@@ -175,11 +208,8 @@ async def create_wallet_deposit_card(
     full_name: str,
     email: str | None,
     phone: str | None,
-    card_number: str,
-    card_expiry_month: str,
-    card_expiry_year: str,
-    card_cvv: str,
-    card_holder_name: str,
+    redirect_url: str,
+    cancel_url: str,
 ):
     """Initiate a wallet top-up via card payment."""
     if not settings.NTZS_API_KEY:
@@ -198,24 +228,16 @@ async def create_wallet_deposit_card(
         "userId": ntzs_user["id"],
         "amountTzs": amount,
         "paymentMethod": "card",
-        "card": {
-            "number": card_number.replace(" ", ""),
-            "expiryMonth": card_expiry_month,
-            "expiryYear": card_expiry_year,
-            "cvv": card_cvv,
-            "holderName": card_holder_name,
-        },
-        "collectToTreasury": True,
-    }
-
-    headers = {
-        "Authorization": f"Bearer {settings.NTZS_API_KEY}",
-        "Content-Type": "application/json",
-        "Idempotency-Key": str(uuid.uuid4()),
+        "redirectUrl": redirect_url,
+        "cancelUrl": cancel_url,
     }
 
     async with httpx.AsyncClient(timeout=30.0) as client:
-        response = await client.post(f"{settings.NTZS_BASE_URL}/api/v1/deposits", json=payload, headers=headers)
+        response = await client.post(
+            f"{settings.NTZS_BASE_URL}/api/v1/deposits",
+            json=payload,
+            headers=_auth_headers(idempotency_key=str(uuid.uuid4())),
+        )
 
     data = _parse_json(response)
     if response.is_success and data.get("id"):
@@ -257,14 +279,12 @@ async def create_withdrawal(
         "description": description,
     }
 
-    headers = {
-        "Authorization": f"Bearer {settings.NTZS_API_KEY}",
-        "Content-Type": "application/json",
-        "Idempotency-Key": str(uuid.uuid4()),
-    }
-
     async with httpx.AsyncClient(timeout=30.0) as client:
-        response = await client.post(f"{settings.NTZS_BASE_URL}/api/v1/withdrawals", json=payload, headers=headers)
+        response = await client.post(
+            f"{settings.NTZS_BASE_URL}/api/v1/withdrawals",
+            json=payload,
+            headers=_auth_headers(idempotency_key=str(uuid.uuid4())),
+        )
 
     data = _parse_json(response)
     if response.is_success and data.get("id"):
@@ -278,9 +298,8 @@ async def get_payment_status(reference: str):
     if not settings.NTZS_API_KEY:
         raise NTZSError("nTZS API key is not configured")
 
-    headers = {"Authorization": f"Bearer {settings.NTZS_API_KEY}"}
     async with httpx.AsyncClient(timeout=30.0) as client:
-        response = await client.get(f"{settings.NTZS_BASE_URL}/api/v1/deposits/{reference}", headers=headers)
+        response = await client.get(f"{settings.NTZS_BASE_URL}/api/v1/deposits/{reference}", headers=_auth_headers())
 
     data = _parse_json(response)
     if response.is_success and data.get("id"):
@@ -298,15 +317,67 @@ async def get_withdrawal_status(reference: str):
     if not settings.NTZS_API_KEY:
         raise NTZSError("nTZS API key is not configured")
 
-    headers = {"Authorization": f"Bearer {settings.NTZS_API_KEY}"}
     async with httpx.AsyncClient(timeout=30.0) as client:
-        response = await client.get(f"{settings.NTZS_BASE_URL}/api/v1/withdrawals/{reference}", headers=headers)
+        response = await client.get(f"{settings.NTZS_BASE_URL}/api/v1/withdrawals/{reference}", headers=_auth_headers())
 
     data = _parse_json(response)
     if response.is_success and data.get("id"):
         return data
 
     raise NTZSError(_error_message(data, "nTZS did not return a withdrawal status."))
+
+
+async def create_transfer(
+    *,
+    from_user_id: int,
+    to_user_id: int,
+    amount: int,
+    sender_email: str,
+    sender_name: str,
+    sender_phone: str | None,
+    recipient_email: str,
+    recipient_name: str,
+    recipient_phone: str | None,
+    metadata: dict | None = None,
+):
+    if not settings.NTZS_API_KEY:
+        raise NTZSError("nTZS API key is not configured")
+
+    sender = await ensure_ntzs_user(
+        external_id=str(from_user_id),
+        email=sender_email,
+        full_name=sender_name,
+        phone=sender_phone,
+    )
+    recipient = await ensure_ntzs_user(
+        external_id=str(to_user_id),
+        email=recipient_email,
+        full_name=recipient_name,
+        phone=recipient_phone,
+    )
+
+    payload = {
+        "fromUserId": sender["id"],
+        "toUserId": recipient["id"],
+        "amountTzs": amount,
+    }
+    if metadata:
+        payload["metadata"] = metadata
+
+    async with httpx.AsyncClient(timeout=30.0) as client:
+        response = await client.post(
+            f"{settings.NTZS_BASE_URL}/api/v1/transfers",
+            json=payload,
+            headers=_auth_headers(idempotency_key=str(uuid.uuid4())),
+        )
+
+    data = _parse_json(response)
+    if response.is_success and data.get("id"):
+        data["from_ntzs_user_id"] = sender["id"]
+        data["to_ntzs_user_id"] = recipient["id"]
+        return data
+
+    raise NTZSError(_error_message(data, "Failed to initiate nTZS transfer"))
 
 
 def verify_webhook_signature(payload: bytes, signature: str | None) -> bool:

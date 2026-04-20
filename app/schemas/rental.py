@@ -30,6 +30,7 @@ class RentalResponse(BaseModel):
 class RentPaymentCreate(BaseModel):
     rental_id: int
     payment_month: str  # "2026-03"
+    payment_source: str = "mobile_money"
 
     @field_validator("payment_month")
     @classmethod
@@ -43,6 +44,14 @@ class RentPaymentCreate(BaseModel):
         month_number = int(month)
         if month_number < 1 or month_number > 12:
             raise ValueError("payment_month must be in YYYY-MM format")
+        return normalized
+
+    @field_validator("payment_source")
+    @classmethod
+    def validate_payment_source(cls, value: str) -> str:
+        normalized = value.strip().lower().replace("-", "_")
+        if normalized not in {"mobile_money", "wallet"}:
+            raise ValueError("payment_source must be mobile_money or wallet")
         return normalized
 
 

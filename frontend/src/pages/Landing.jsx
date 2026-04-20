@@ -14,7 +14,12 @@ import {
   MapPinned,
   Landmark,
   Sparkles,
+  Moon,
+  Sun,
+  Wallet,
 } from 'lucide-react'
+import { useTheme } from '../context/ThemeContext'
+import { useAuth } from '../context/useAuth'
 
 const stats = [
   { label: 'Verified Listings', value: '300K+', icon: Building },
@@ -72,10 +77,13 @@ const highlightCards = [
 ]
 
 export default function Landing() {
+  const { isDark, toggle } = useTheme()
+  const { user } = useAuth()
+
   return (
     <div className="min-h-screen">
       <section className="relative overflow-hidden px-4 pb-8 pt-5 sm:px-6 lg:px-8">
-        <div className="absolute inset-x-0 top-0 h-[34rem] bg-[radial-gradient(circle_at_top_left,_rgba(15,127,95,0.25),_transparent_40%),radial-gradient(circle_at_top_right,_rgba(211,154,52,0.16),_transparent_26%)]" />
+        <div className="absolute inset-x-0 top-0 h-[34rem] bg-[radial-gradient(circle_at_top_left,_rgba(15,127,95,0.18),_transparent_40%),radial-gradient(circle_at_top_right,_rgba(211,154,52,0.1),_transparent_26%)]" />
         <div className="shell-panel relative mx-auto max-w-7xl overflow-hidden rounded-[2rem] px-6 py-16 text-white sm:px-8 lg:px-12 lg:py-20">
           <div className="absolute inset-0 opacity-20">
             <div className="absolute -left-12 top-14 h-56 w-56 rounded-full bg-emerald-300 blur-3xl" />
@@ -85,9 +93,19 @@ export default function Landing() {
 
           <div className="relative grid items-center gap-10 lg:grid-cols-[1.12fr_0.88fr]">
             <div>
-              <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/8 px-4 py-1.5 text-sm backdrop-blur-sm">
-                <Shield className="h-4 w-4 text-emerald-300" />
-                <span>Dar es Salaam&apos;s verified rental marketplace</span>
+              <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+                <div className="inline-flex items-center gap-2 rounded-full border border-white/14 bg-slate-950/26 px-4 py-1.5 text-sm text-white shadow-sm backdrop-blur-sm">
+                  <Shield className="h-4 w-4 text-emerald-300" />
+                  <span>Dar es Salaam&apos;s verified rental marketplace</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={toggle}
+                  className="inline-flex items-center gap-2 rounded-full border border-white/14 bg-slate-950/28 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-slate-950/40"
+                >
+                  {isDark ? <Sun className="h-4 w-4 text-amber-300" /> : <Moon className="h-4 w-4 text-emerald-300" />}
+                  <span>{isDark ? 'Switch to light mode' : 'Switch to dark mode'}</span>
+                </button>
               </div>
               <h1 className="text-balance mb-6 max-w-3xl text-4xl font-bold leading-[0.95] sm:text-5xl lg:text-7xl">
                 Renting that feels
@@ -97,14 +115,20 @@ export default function Landing() {
                 Verified listings, identity-reviewed renters, trusted agents, and digital rent collection built for how Dar actually rents.
               </p>
               <div className="mb-10 flex flex-col gap-4 sm:flex-row">
-                <Link to="/properties" className="inline-flex items-center justify-center gap-2 rounded-2xl bg-white px-6 py-3.5 text-lg font-semibold text-emerald-900 shadow-[0_20px_40px_rgba(255,255,255,0.12)] transition-transform hover:-translate-y-0.5 hover:bg-emerald-50">
+                <Link to="/properties" className="inline-flex items-center justify-center gap-2 rounded-2xl border border-amber-200/60 bg-amber-300 px-6 py-3.5 text-lg font-semibold text-slate-950 shadow-[0_22px_44px_rgba(8,17,13,0.28)] transition-transform hover:-translate-y-0.5 hover:bg-amber-200">
                   <Search className="h-5 w-5" />
                   Browse Rentals
                 </Link>
-                <Link to="/register" className="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/15 bg-emerald-500/18 px-6 py-3.5 text-lg font-semibold text-white transition-transform hover:-translate-y-0.5 hover:bg-emerald-500/24">
-                  List Your Property
+                <Link to="/register" className="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/22 bg-slate-950/30 px-6 py-3.5 text-lg font-semibold text-white shadow-[0_18px_36px_rgba(8,17,13,0.18)] transition-transform hover:-translate-y-0.5 hover:bg-slate-950/42">
+                  {user ? 'Add Another Listing' : 'List Your Property'}
                   <ArrowRight className="h-5 w-5" />
                 </Link>
+                {user && (
+                  <Link to="/wallet" className="inline-flex items-center justify-center gap-2 rounded-2xl border border-emerald-300/30 bg-emerald-400/14 px-6 py-3.5 text-lg font-semibold text-white transition-transform hover:-translate-y-0.5 hover:bg-emerald-400/22">
+                    <Wallet className="h-5 w-5" />
+                    Open Wallet
+                  </Link>
+                )}
               </div>
               <div className="flex flex-wrap items-center gap-3">
                 {districts.map((district) => (

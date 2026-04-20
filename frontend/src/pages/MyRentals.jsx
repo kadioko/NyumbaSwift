@@ -1,13 +1,15 @@
 import { useState, useEffect, useCallback } from 'react'
-import { CreditCard, Calendar, Home, AlertCircle, CheckCircle, Wallet, ArrowRightLeft } from 'lucide-react'
-import { rentals as rentalApi } from '../services/api'
+import { CreditCard, Calendar, Home, AlertCircle, CheckCircle, Wallet, ArrowRightLeft, RefreshCw } from 'lucide-react'
+import { rentals as rentalApi, wallet as walletApi } from '../services/api'
 import { bannerStyles, buttonStyles, inputStyles, skeletonBlock, surfaceCard } from '../components/ui'
 
 export default function MyRentals() {
   const [myRentals, setMyRentals] = useState([])
   const [payments, setPayments] = useState([])
+  const [walletSummary, setWalletSummary] = useState(null)
   const [loading, setLoading] = useState(true)
   const [payForm, setPayForm] = useState({ rental_id: '', payment_month: '' })
+  const [paymentSource, setPaymentSource] = useState('mobile_money')
   const [paying, setPaying] = useState(false)
   const [payResult, setPayResult] = useState(null)
   const [confirmRef, setConfirmRef] = useState('')
@@ -20,12 +22,14 @@ export default function MyRentals() {
     setLoading(true)
     setError('')
     try {
-      const [r, p] = await Promise.all([rentalApi.my(), rentalApi.paymentHistory()])
+      const [r, p, wallet] = await Promise.all([rentalApi.my(), rentalApi.paymentHistory(), walletApi.get()])
       setMyRentals(r)
       setPayments(p)
+      setWalletSummary(wallet)
     } catch (err) {
       setMyRentals([])
       setPayments([])
+      setWalletSummary(null)
       setError(err.message || 'Unable to load your rental information right now.')
     } finally {
       setLoading(false)
@@ -46,9 +50,19 @@ export default function MyRentals() {
       const data = await rentalApi.pay({
         rental_id: Number(payForm.rental_id),
         payment_month: payForm.payment_month || currentMonth,
+        payment_source: paymentSource,
       })
-      setPayResult(data)
-      setSuccess('Payment request created. Complete the nTZS mobile money prompt, then confirm the payment reference below if needed.')
+      if (paymentSource === 'wallet' || data.status === 'completed') {
+        setPayResult(null)
+        setConfirmRef('')
+        setPayForm({ rental_id: '', payment_month: '' })
+        await loadRentalData()
+        window.dispatchEvent(new CustomEvent('nyumbaswift:wallet-updated'))
+        setSuccess('Rent paid successfully from your NyumbaSwift wallet.')
+      } else {
+        setPayResult(data)
+        setSuccess('Payment request created. Complete the nTZS mobile money prompt, then confirm the payment reference below if needed.')
+      }
     } catch (err) {
       setError(err.message)
     } finally {
@@ -67,6 +81,7 @@ export default function MyRentals() {
       setConfirmRef('')
       setPayForm({ rental_id: '', payment_month: '' })
       await loadRentalData()
+      window.dispatchEvent(new CustomEvent('nyumbaswift:wallet-updated'))
       setSuccess('Payment confirmed successfully and your history has been updated.')
     } catch (err) {
       setError(err.message)
@@ -110,6 +125,10 @@ export default function MyRentals() {
   }
 
   const activeRentals = myRentals.filter((rental) => rental.status === 'active')
+  const walletBalance = walletSummary?.balance_tzs ?? 0
+  const selectedRental = activeRentals.find((rental) => String(rental.id) === String(payForm.rental_id))
+  const selectedRentAmount = selectedRental?.monthly_rent ?? 0
+  const walletCanCoverRent = !selectedRental || walletBalance >= selectedRentAmount
 
   return (
     <div className="min-h-screen">
@@ -122,9 +141,28 @@ export default function MyRentals() {
                 <h1 className="text-3xl font-bold text-slate-950 dark:text-white">My Rentals</h1>
                 <p className="mt-1 text-slate-600 dark:text-slate-400">Manage your rentals and pay rent</p>
               </div>
-              <div className="rounded-[1.4rem] border border-white/80 bg-white/85 px-5 py-4 shadow-sm dark:border-slate-700 dark:bg-slate-800">
-                <div className="text-sm text-slate-500 dark:text-slate-400">Active rentals</div>
-                <div className="text-3xl font-bold text-slate-950 dark:text-white">{activeRentals.length}</div>
+              <div className="flex flex-wrap gap-3">
+                <div className="rounded-[1.4rem] border border-white/80 bg-white/85 px-5 py-4 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+                  <div className="text-sm text-slate-500 dark:text-slate-400">Active rentals</div>
+                  <div className="text-3xl font-bold text-slate-950 dark:text-white">{activeRentals.length}</div>
+                </div>
+                <div className="rounded-[1.4rem] border border-emerald-100 bg-emerald-50/88 px-5 py-4 shadow-sm dark:border-emerald-900/40 dark:bg-emerald-900/25">
+                  <div className="flex items-center justify-between gap-3 text-sm text-emerald-700 dark:text-emerald-300">
+                    <span>Wallet balance</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        loadRentalData()
+                        window.dispatchEvent(new CustomEvent('nyumbaswift:wallet-updated'))
+                      }}
+                      className="rounded-full p-1 transition-colors hover:bg-white/70 dark:hover:bg-emerald-900/40"
+                      title="Refresh wallet balance"
+                    >
+                      <RefreshCw className="h-4 w-4" />
+                    </button>
+                  </div>
+                  <div className="text-3xl font-bold text-slate-950 dark:text-white">TZS {walletBalance.toLocaleString()}</div>
+                </div>
               </div>
             </div>
 
@@ -242,6 +280,35 @@ export default function MyRentals() {
                   <CreditCard className="mx-auto mb-2 h-10 w-10 text-emerald-600 dark:text-emerald-400" />
                   <h3 className="font-semibold text-slate-950 dark:text-white">Pay Rent</h3>
                 </div>
+                <div className="rounded-[1.2rem] border border-slate-200 bg-slate-50 p-1 dark:border-slate-700 dark:bg-slate-900">
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setPaymentSource('mobile_money')}
+                      className={`rounded-xl px-4 py-2.5 text-sm font-semibold transition ${
+                        paymentSource === 'mobile_money'
+                          ? 'bg-white text-slate-950 shadow-sm dark:bg-slate-700 dark:text-white'
+                          : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
+                      }`}
+                    >
+                      Mobile money
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPaymentSource('wallet')}
+                      className={`rounded-xl px-4 py-2.5 text-sm font-semibold transition ${
+                        paymentSource === 'wallet'
+                          ? 'bg-white text-slate-950 shadow-sm dark:bg-slate-700 dark:text-white'
+                          : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
+                      }`}
+                    >
+                      Wallet balance
+                    </button>
+                  </div>
+                </div>
+                <div className="rounded-[1.2rem] bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">
+                  Available wallet balance: <span className="font-bold">TZS {walletBalance.toLocaleString()}</span>
+                </div>
                 <div>
                   <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">Rental</label>
                   <select
@@ -266,8 +333,18 @@ export default function MyRentals() {
                     required
                   />
                 </div>
-                <button type="submit" disabled={paying || activeRentals.length === 0} className={buttonStyles({ fullWidth: true })}>
-                  {paying ? 'Processing...' : 'Initiate Payment'}
+                {paymentSource === 'wallet' && !walletCanCoverRent && (
+                  <div className={bannerStyles('warning')}>
+                    <AlertCircle className="h-4 w-4 shrink-0" />
+                    <span>Your wallet balance is lower than this month&apos;s rent. Top up first or switch to mobile money.</span>
+                  </div>
+                )}
+                <button
+                  type="submit"
+                  disabled={paying || activeRentals.length === 0 || (paymentSource === 'wallet' && !walletCanCoverRent)}
+                  className={buttonStyles({ fullWidth: true })}
+                >
+                  {paying ? 'Processing...' : paymentSource === 'wallet' ? 'Pay from Wallet' : 'Initiate Payment'}
                 </button>
               </form>
             )}
