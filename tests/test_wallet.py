@@ -234,6 +234,77 @@ def test_confirm_deposit_reconciles_from_live_balance_when_status_lookup_fails(c
     assert wallet_resp.json()["balance_tzs"] == 10000
 
 
+def test_reconciliation_prefers_exact_recent_deposit_match(client, monkeypatch):
+    live_balance = {"value": 0}
+
+    async def fake_get_ntzs_user(*, user_id=None, external_id=None, email=None, full_name=None, phone=None):
+        resolved_id = str(user_id or external_id or "1")
+        return {
+            "id": f"ntzs-{resolved_id}",
+            "balanceTzs": live_balance["value"],
+            "balanceUsdc": 0,
+            "walletAddress": f"0x{resolved_id.zfill(40)[:40]}",
+        }
+
+    created_refs = iter(["dep-older-1500", "dep-newer-1600"])
+
+    async def fake_mobile_deposit(**kwargs):
+        return {
+            "id": next(created_refs),
+            "status": "submitted",
+            "amount": kwargs.get("amount"),
+            "paymentMethod": "mobile_money",
+            "instructions": "Check your phone for the payment prompt",
+        }
+
+    async def fake_get_payment_status(reference):
+        raise ntzs_service.NTZSError("status lookup unavailable")
+
+    monkeypatch.setattr("app.api.wallet.ntzs_service.get_ntzs_user", fake_get_ntzs_user)
+    monkeypatch.setattr("app.api.wallet.ntzs_service.create_wallet_deposit_mobile", fake_mobile_deposit)
+    monkeypatch.setattr("app.api.wallet.ntzs_service.get_payment_status", fake_get_payment_status)
+
+    token = register_user(
+        client,
+        phone="0712400009",
+        name="Matcher User",
+        email="matcher@example.com",
+    ).json()["access_token"]
+
+    first = client.post(
+        "/api/v1/wallet/deposit",
+        headers=auth_header(token),
+        json={
+            "amount": 1500,
+            "payment_method": "mobile_money",
+            "phone": "0712400009",
+        },
+    )
+    second = client.post(
+        "/api/v1/wallet/deposit",
+        headers=auth_header(token),
+        json={
+            "amount": 1600,
+            "payment_method": "mobile_money",
+            "phone": "0712400009",
+        },
+    )
+    assert first.status_code == 202
+    assert second.status_code == 202
+
+    live_balance["value"] = 1600
+    wallet_resp = client.get("/api/v1/wallet/", headers=auth_header(token))
+    assert wallet_resp.status_code == 200
+    assert wallet_resp.json()["balance_tzs"] == 1600
+
+    txns_resp = client.get("/api/v1/wallet/transactions", headers=auth_header(token))
+    assert txns_resp.status_code == 200
+    txns = txns_resp.json()
+    by_amount = {txn["amount"]: txn for txn in txns}
+    assert by_amount[1600]["status"] == "completed"
+    assert by_amount[1500]["status"] == "processing"
+
+
 def test_shared_ntzs_webhook_completes_wallet_deposit(client, mock_wallet_ntzs, monkeypatch):
     monkeypatch.setattr(settings, "NTZS_WEBHOOK_SECRET", "test-secret")
 

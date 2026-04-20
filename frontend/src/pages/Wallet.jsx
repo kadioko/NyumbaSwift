@@ -26,6 +26,19 @@ function fmt(n) {
   return (n ?? 0).toLocaleString()
 }
 
+function formatReference(reference) {
+  if (!reference) return ''
+  if (reference.length <= 18) return reference
+  return `${reference.slice(0, 8)}...${reference.slice(-6)}`
+}
+
+function isStaleProcessing(txn) {
+  if (txn.status !== 'processing') return false
+  const createdAt = new Date(txn.created_at).getTime()
+  if (Number.isNaN(createdAt)) return false
+  return Date.now() - createdAt > 30 * 60 * 1000
+}
+
 function StatusBadge({ status }) {
   const map = {
     completed: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400',
@@ -379,7 +392,15 @@ export default function Wallet() {
                           <TxLabel type={txn.type} />
                           {txn.description && <span className="ml-1.5 font-normal text-slate-500 text-xs dark:text-slate-500">&mdash; {txn.description}</span>}
                         </div>
-                        <div className="text-xs text-slate-400 dark:text-slate-500">{new Date(txn.created_at).toLocaleString()}</div>
+                        <div className="text-xs text-slate-400 dark:text-slate-500">
+                          {new Date(txn.created_at).toLocaleString()}
+                          {txn.ntzs_reference && ` • Ref ${formatReference(txn.ntzs_reference)}`}
+                        </div>
+                        {isStaleProcessing(txn) && (
+                          <div className="mt-1 text-xs text-amber-600 dark:text-amber-400">
+                            Still awaiting provider confirmation. Use refresh after approval or check webhook setup.
+                          </div>
+                        )}
                       </div>
                       <div className="text-right">
                         <div className="text-sm font-semibold text-slate-800 dark:text-slate-200">
@@ -654,7 +675,15 @@ export default function Wallet() {
                     <div className="text-sm font-medium text-slate-800 dark:text-slate-200">
                       <TxLabel type={txn.type} />
                     </div>
-                    <div className="text-xs text-slate-400 dark:text-slate-500 truncate">{txn.description || '—'} &middot; {new Date(txn.created_at).toLocaleString()}</div>
+                    <div className="text-xs text-slate-400 dark:text-slate-500 truncate">
+                      {txn.description || '—'} &middot; {new Date(txn.created_at).toLocaleString()}
+                      {txn.ntzs_reference && ` • Ref ${formatReference(txn.ntzs_reference)}`}
+                    </div>
+                    {isStaleProcessing(txn) && (
+                      <div className="mt-1 text-xs text-amber-600 dark:text-amber-400">
+                        Still awaiting provider confirmation. Refresh after approval or check webhook delivery.
+                      </div>
+                    )}
                   </div>
                   <div className="text-right">
                     <div className="text-sm font-semibold text-slate-800 dark:text-slate-200">

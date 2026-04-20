@@ -59,6 +59,13 @@ def _local_completed_balance(wallet_id: int, db: Session) -> int:
     return balance
 
 
+def _reconciliation_sort_key(txn: WalletTransaction, missing_inflow: int):
+    exact_match = 0 if txn.amount == missing_inflow else 1
+    fits_remaining = 0 if txn.amount <= missing_inflow else 1
+    timestamp = txn.created_at.timestamp() if txn.created_at else 0
+    return (exact_match, fits_remaining, -timestamp, -txn.amount, txn.id)
+
+
 def _reconcile_completed_deposits(wallet: Wallet, live_balance_tzs: int, db: Session):
     accounted_balance = _local_completed_balance(wallet.id, db)
     missing_inflow = max(int(live_balance_tzs or 0) - accounted_balance, 0)
@@ -72,18 +79,18 @@ def _reconcile_completed_deposits(wallet: Wallet, live_balance_tzs: int, db: Ses
             WalletTransaction.type == TransactionType.DEPOSIT,
             WalletTransaction.status.in_([TransactionStatus.PENDING, TransactionStatus.PROCESSING]),
         )
-        .order_by(WalletTransaction.created_at.asc())
         .all()
     )
     changed = False
-    for txn in processing_deposits:
+    remaining_deposits = list(processing_deposits)
+    while missing_inflow > 0 and remaining_deposits:
+        remaining_deposits.sort(key=lambda txn: _reconciliation_sort_key(txn, missing_inflow))
+        txn = remaining_deposits.pop(0)
         if txn.amount <= missing_inflow:
             txn.status = TransactionStatus.COMPLETED
             txn.completed_at = txn.completed_at or datetime.now(timezone.utc)
             missing_inflow -= txn.amount
             changed = True
-        if missing_inflow <= 0:
-            break
 
     if changed:
         db.commit()
