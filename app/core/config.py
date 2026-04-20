@@ -8,12 +8,7 @@ class Settings(BaseSettings):
     DEBUG: bool = True
 
     # Database
-    DATABASE_URL: str = os.getenv(
-        "DATABASE_URL",
-        "sqlite:////tmp/nyumbaswift.db"
-        if os.getenv("VERCEL")
-        else "sqlite:///./nyumbaswift.db",
-    )
+    DATABASE_URL: str = "sqlite:///./nyumbaswift.db"
 
     # JWT Auth
     SECRET_KEY: str = "nyumbaswift-dev-secret-change-in-production"
@@ -35,12 +30,16 @@ class Settings(BaseSettings):
     MPESA_SERVICE_PROVIDER_CODE: str = ""
 
     # nTZS partner API config
-    NTZS_BASE_URL: str = os.getenv("NTZS_BASE_URL", "https://www.ntzs.co.tz")
-    NTZS_API_KEY: str = os.getenv("NTZS_API_KEY", "")
-    NTZS_WEBHOOK_SECRET: str = os.getenv("NTZS_WEBHOOK_SECRET", "")
-    PUBLIC_BASE_URL: str = os.getenv("PUBLIC_BASE_URL", "https://nyumbaswift.vercel.app")
+    NTZS_BASE_URL: str = "https://www.ntzs.co.tz"
+    NTZS_API_KEY: str = ""
+    NTZS_WEBHOOK_SECRET: str = ""
+    PUBLIC_BASE_URL: str = "https://nyumbaswift.vercel.app"
 
-    model_config = {"env_file": ".env"}
+    model_config = {
+        "env_file": ".env",
+        "env_file_encoding": "utf-8",
+        "extra": "ignore",
+    }
 
 
 settings = Settings()
