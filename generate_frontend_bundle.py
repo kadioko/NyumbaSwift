@@ -18,7 +18,7 @@ html = html.replace(
     f"<style>{css}</style>",
 )
 html = html.replace(
-    '<link rel="icon" type="image/svg+xml" href="/vite.svg" />',
+    '<link rel="icon" type="image/svg+xml" href="/favicon.svg" />',
     "",
 )
 

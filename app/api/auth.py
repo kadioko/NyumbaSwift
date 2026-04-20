@@ -8,6 +8,7 @@ from app.core.database import get_db
 from app.core.rate_limit import enforce_rate_limit
 from app.core.security import create_access_token, hash_password, verify_password
 from app.models.user import User, VerificationStatus
+from app.models.wallet import Wallet
 from app.schemas.user import (
     TokenResponse,
     UserLogin,
@@ -48,6 +49,9 @@ def register(data: UserRegister, request: Request, db: Session = Depends(get_db)
     db.add(user)
     db.commit()
     db.refresh(user)
+    if not db.query(Wallet).filter(Wallet.user_id == user.id).first():
+        db.add(Wallet(user_id=user.id, balance_tzs=0))
+        db.commit()
     token = create_access_token({"sub": user.id})
     return TokenResponse(access_token=token, user=UserResponse.model_validate(user))
 

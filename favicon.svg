@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="ns-bg" x1="0%" x2="100%" y1="0%" y2="100%">
+      <stop offset="0%" stop-color="#0f7f5f"/>
+      <stop offset="55%" stop-color="#167f67"/>
+      <stop offset="100%" stop-color="#0b3b31"/>
+    </linearGradient>
+    <linearGradient id="ns-roof" x1="0%" x2="100%" y1="0%" y2="100%">
+      <stop offset="0%" stop-color="#f2c266"/>
+      <stop offset="100%" stop-color="#d39a34"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="120" fill="url(#ns-bg)"/>
+  <circle cx="396" cy="112" r="64" fill="#ffffff" opacity="0.08"/>
+  <path d="M108 246 256 124l148 122v148c0 13-11 24-24 24H132c-13 0-24-11-24-24Z" fill="#fff6e5"/>
+  <path d="M82 250c-11 0-17-14-9-22L242 90c8-7 20-7 28 0l169 138c8 8 2 22-9 22h-32L256 132 114 250Z" fill="url(#ns-roof)"/>
+  <path d="M176 198h42v164h-42zM298 198h42v164h-42zM218 242h80v42h-80z" fill="#0f7f5f"/>
+  <path d="M208 362h96v56h-96z" fill="#dbeee6"/>
+  <path d="M160 376h38v42h-38zM314 376h38v42h-38z" fill="#d39a34"/>
+  <path d="M198 170h116c10 0 18 8 18 18v10H180v-10c0-10 8-18 18-18Z" fill="#d39a34" opacity="0.92"/>
+</svg>

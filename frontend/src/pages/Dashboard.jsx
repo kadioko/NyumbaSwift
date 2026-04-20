@@ -5,6 +5,7 @@ import {
   Users,
   CreditCard,
   TrendingUp,
+  Wallet,
   Plus,
   Loader2,
   ChevronRight,
@@ -13,6 +14,8 @@ import {
   Phone,
   AlertCircle,
   CheckCircle,
+  MessageCircle,
+  Clock3,
 } from 'lucide-react'
 import { auth as authApi, dashboard as dashApi, properties as propApi } from '../services/api'
 import { useAuth } from '../context/useAuth'
@@ -131,6 +134,32 @@ export default function Dashboard() {
     { label: 'Active Listings', value: summary.active_listings, icon: TrendingUp, color: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400' },
     { label: isAdmin ? 'Active Rentals' : 'Active Tenants', value: summary.active_rentals, icon: Users, color: 'bg-violet-50 text-violet-600 dark:bg-violet-900/30 dark:text-violet-400' },
     { label: isAdmin ? 'Platform Revenue' : 'Rent Collected', value: `TZS ${(isAdmin ? summary.total_platform_revenue_tzs : summary.total_rent_collected_tzs)?.toLocaleString()}`, icon: CreditCard, color: 'bg-amber-50 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400' },
+  ] : []
+
+  const landlordMomentumStats = !isAdmin && summary ? [
+    {
+      label: 'Wallet Balance',
+      value: `TZS ${summary.wallet_balance_tzs?.toLocaleString() ?? '0'}`,
+      detail: summary.wallet_status_message,
+      icon: Wallet,
+      color: summary.wallet_ready
+        ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400'
+        : 'bg-amber-50 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400',
+    },
+    {
+      label: 'Tenants Due Now',
+      value: summary.tenants_due_now ?? 0,
+      detail: `${summary.overdue_rentals ?? 0} overdue right now`,
+      icon: Clock3,
+      color: 'bg-rose-50 text-rose-600 dark:bg-rose-900/30 dark:text-rose-400',
+    },
+    {
+      label: 'Total Due',
+      value: `TZS ${summary.total_due_tzs?.toLocaleString() ?? '0'}`,
+      detail: 'Outstanding rent expected from active tenants',
+      icon: CreditCard,
+      color: 'bg-sky-50 text-sky-600 dark:bg-sky-900/30 dark:text-sky-400',
+    },
   ] : []
 
   const tabs = isAdmin ? ['overview', 'verifications'] : ['overview', 'properties']
@@ -256,6 +285,23 @@ export default function Dashboard() {
                     </p>
                   </div>
                 </div>
+
+                {!isAdmin && (
+                  <div className="grid gap-4 lg:grid-cols-3">
+                    {landlordMomentumStats.map(({ label, value, detail, icon: Icon, color }) => (
+                      <div key={label} className="shell-card rounded-[1.5rem] p-5">
+                        <div className="mb-3 flex items-center justify-between">
+                          <span className="text-sm text-slate-500 dark:text-slate-400">{label}</span>
+                          <div className={`flex h-10 w-10 items-center justify-center rounded-2xl ${color}`}>
+                            <Icon className="h-4 w-4" />
+                          </div>
+                        </div>
+                        <div className="text-xl font-bold text-slate-950 dark:text-white">{value}</div>
+                        <p className="mt-2 text-sm leading-relaxed text-slate-500 dark:text-slate-400">{detail}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 
@@ -290,13 +336,96 @@ export default function Dashboard() {
                           </div>
                           <div className="text-sm text-slate-500 dark:text-slate-400">{p.district} &middot; TZS {p.rent_amount?.toLocaleString()}/mo</div>
                           {p.current_tenant && (
-                            <div className="mt-2 flex items-center gap-2 text-sm">
-                              <div className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-100 text-xs font-semibold text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400">
-                                {p.current_tenant.name?.charAt(0)}
+                            <>
+                              <div className="mt-2 flex flex-wrap items-center gap-2 text-sm">
+                                <div className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-100 text-xs font-semibold text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400">
+                                  {p.current_tenant.name?.charAt(0)}
+                                </div>
+                                <span className="text-slate-700 dark:text-slate-300">{p.current_tenant.name}</span>
+                                <span className="text-slate-400 dark:text-slate-500">&middot; Since {new Date(p.current_tenant.rental_start).toLocaleDateString()}</span>
                               </div>
-                              <span className="text-slate-700 dark:text-slate-300">{p.current_tenant.name}</span>
-                              <span className="text-slate-400 dark:text-slate-500">&middot; Since {new Date(p.current_tenant.rental_start).toLocaleDateString()}</span>
-                            </div>
+
+                              <div className="mt-4 grid gap-3 rounded-[1.4rem] border border-slate-200/80 bg-slate-50/80 p-4 dark:border-slate-700 dark:bg-slate-900/40">
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
+                                    p.current_tenant.rent_status?.has_balance_due
+                                      ? 'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300'
+                                      : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300'
+                                  }`}>
+                                    {p.current_tenant.rent_status?.has_balance_due ? 'Rent due' : 'Rent up to date'}
+                                  </span>
+                                  <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
+                                    p.wallet_receive_ready
+                                      ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300'
+                                      : 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300'
+                                  }`}>
+                                    {p.wallet_receive_ready ? 'Wallet ready' : 'Wallet setup needed'}
+                                  </span>
+                                </div>
+
+                                <div className="grid gap-3 text-sm sm:grid-cols-2 xl:grid-cols-4">
+                                  <div>
+                                    <div className="text-slate-500 dark:text-slate-400">Total due</div>
+                                    <div className="font-semibold text-slate-950 dark:text-white">
+                                      TZS {p.current_tenant.rent_status?.total_due_tzs?.toLocaleString() ?? '0'}
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <div className="text-slate-500 dark:text-slate-400">Months due</div>
+                                    <div className="font-semibold text-slate-950 dark:text-white">
+                                      {p.current_tenant.rent_status?.months_due ?? 0}
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <div className="text-slate-500 dark:text-slate-400">Days overdue</div>
+                                    <div className="font-semibold text-slate-950 dark:text-white">
+                                      {p.current_tenant.rent_status?.days_overdue ?? 0}
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <div className="text-slate-500 dark:text-slate-400">Next due date</div>
+                                    <div className="font-semibold text-slate-950 dark:text-white">
+                                      {p.current_tenant.rent_status?.next_due_date
+                                        ? new Date(p.current_tenant.rent_status.next_due_date).toLocaleDateString()
+                                        : 'Not available'}
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <div className="text-sm text-slate-600 dark:text-slate-300">
+                                  {p.current_tenant.rent_status?.has_balance_due ? (
+                                    <>
+                                      Due months: {p.current_tenant.rent_status?.due_months?.join(', ') || 'Current month'}
+                                      {p.current_tenant.rent_status?.last_paid_month && ` • Last paid ${p.current_tenant.rent_status.last_paid_month}`}
+                                    </>
+                                  ) : (
+                                    <>
+                                      Tenant is current on rent.
+                                      {p.current_tenant.rent_status?.last_paid_month && ` Last paid ${p.current_tenant.rent_status.last_paid_month}.`}
+                                    </>
+                                  )}
+                                </div>
+
+                                <div className="flex flex-wrap items-center gap-2">
+                                  {p.current_tenant.whatsapp_url ? (
+                                    <a
+                                      href={p.current_tenant.whatsapp_url}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
+                                    >
+                                      <MessageCircle className="h-4 w-4" />
+                                      Remind on WhatsApp
+                                    </a>
+                                  ) : (
+                                    <span className="rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400">
+                                      No WhatsApp number available
+                                    </span>
+                                  )}
+                                  <span className="text-sm text-slate-500 dark:text-slate-400">{p.wallet_status_message}</span>
+                                </div>
+                              </div>
+                            </>
                           )}
                           <div className="mt-4 flex flex-wrap items-center gap-2">
                             <button
