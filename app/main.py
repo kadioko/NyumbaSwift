@@ -3,7 +3,7 @@ from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
 
-from app.api import agents, auth, dashboard, properties, rentals, wallet
+from app.api import agents, auth, dashboard, ntzs_webhooks, properties, rentals, wallet
 from app.core.config import settings
 from app.core.database import Base, engine
 from app.frontend_bundle import FRONTEND_HTML
@@ -36,6 +36,7 @@ app.include_router(rentals.router, prefix="/api/v1")
 app.include_router(agents.router, prefix="/api/v1")
 app.include_router(dashboard.router, prefix="/api/v1")
 app.include_router(wallet.router, prefix="/api/v1")
+app.include_router(ntzs_webhooks.router, prefix="/api/v1")
 
 if ASSETS_DIR.exists():
     app.mount("/assets", StaticFiles(directory=ASSETS_DIR), name="assets")

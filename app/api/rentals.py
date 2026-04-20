@@ -351,7 +351,7 @@ async def initiate_rent_payment(
                 "rental_id": str(rental.id),
                 "tenant_id": str(current_user.id),
                 "purpose": "rent_payment",
-                "callback_url": f"{settings.PUBLIC_BASE_URL}/api/v1/rentals/webhooks/ntzs",
+                "callback_url": f"{settings.PUBLIC_BASE_URL}/api/v1/ntzs/webhooks",
             },
         )
     except NTZSError as exc:
@@ -536,7 +536,7 @@ async def unlock_listing(
                 "property_id": str(data.property_id),
                 "renter_id": str(current_user.id),
                 "purpose": "listing_unlock",
-                "callback_url": f"{settings.PUBLIC_BASE_URL}/api/v1/rentals/webhooks/ntzs",
+                "callback_url": f"{settings.PUBLIC_BASE_URL}/api/v1/ntzs/webhooks",
             },
         )
     except NTZSError as exc:

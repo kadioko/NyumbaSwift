@@ -1,7 +1,11 @@
 import asyncio
+import hashlib
+import hmac
+import json
 
 import httpx
 
+from app.core.config import settings
 from app.services import ntzs as ntzs_service
 from tests.conftest import auth_header, register_user
 
@@ -228,3 +232,47 @@ def test_confirm_deposit_reconciles_from_live_balance_when_status_lookup_fails(c
     wallet_resp = client.get("/api/v1/wallet/", headers=auth_header(token))
     assert wallet_resp.status_code == 200
     assert wallet_resp.json()["balance_tzs"] == 10000
+
+
+def test_shared_ntzs_webhook_completes_wallet_deposit(client, mock_wallet_ntzs, monkeypatch):
+    monkeypatch.setattr(settings, "NTZS_WEBHOOK_SECRET", "test-secret")
+
+    token = register_user(
+        client,
+        phone="0712400008",
+        name="Webhook User",
+        email="webhook@example.com",
+    ).json()["access_token"]
+
+    deposit_resp = client.post(
+        "/api/v1/wallet/deposit",
+        headers=auth_header(token),
+        json={
+            "amount": 10000,
+            "payment_method": "mobile_money",
+            "phone": "0712400008",
+        },
+    )
+    assert deposit_resp.status_code == 202
+
+    event = {
+        "type": "deposit.completed",
+        "data": {
+            "depositId": "dep-mobile-1",
+            "amountTzs": 10000,
+        },
+    }
+    payload = json.dumps(event).encode()
+    signature = hmac.new(settings.NTZS_WEBHOOK_SECRET.encode(), payload, hashlib.sha256).hexdigest()
+
+    webhook_resp = client.post(
+        "/api/v1/ntzs/webhooks",
+        data=payload,
+        headers={"x-ntzs-signature": signature, "Content-Type": "application/json"},
+    )
+    assert webhook_resp.status_code == 200
+    assert webhook_resp.json()["status"] == "ok"
+
+    transactions_resp = client.get("/api/v1/wallet/transactions", headers=auth_header(token))
+    assert transactions_resp.status_code == 200
+    assert transactions_resp.json()[0]["status"] == "completed"
