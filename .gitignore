@@ -1,6 +1,7 @@
 __pycache__/
 *.py[cod]
 *.db
+node_modules/
 .env
 .venv/
 dist/
@@ -8,4 +9,5 @@ frontend/dist/
 frontend/node_modules/
 *.egg-info/
 .pytest_cache/
+.tmp/
 .vercel

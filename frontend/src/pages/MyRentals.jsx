@@ -36,7 +36,15 @@ export default function MyRentals() {
     }
   }, [])
 
-  useEffect(() => { loadRentalData() }, [loadRentalData])
+  useEffect(() => {
+    let ignore = false
+    const run = async () => {
+      await Promise.resolve()
+      if (!ignore) await loadRentalData()
+    }
+    run()
+    return () => { ignore = true }
+  }, [loadRentalData])
 
   const currentMonth = new Date().toISOString().slice(0, 7)
 

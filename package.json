@@ -2,6 +2,8 @@
   "name": "nyumbaswift",
   "private": true,
   "scripts": {
-    "build": "npm --prefix frontend install && npm --prefix frontend run build"
+    "build": "npm --prefix frontend ci && npm run build:frontend-bundle",
+    "build:frontend-bundle": "npm --prefix frontend run build && python generate_frontend_bundle.py",
+    "check:frontend-bundle": "powershell -ExecutionPolicy Bypass -File scripts/check_frontend_bundle.ps1"
   }
 }

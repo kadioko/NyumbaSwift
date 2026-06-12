@@ -18,7 +18,7 @@ import {
   Sun,
   Wallet,
 } from 'lucide-react'
-import { useTheme } from '../context/ThemeContext'
+import { useTheme } from '../context/useTheme'
 import { useAuth } from '../context/useAuth'
 
 const stats = [

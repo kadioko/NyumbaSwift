@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { Search, SlidersHorizontal, X, Loader2, Building2, Sparkles, ArrowDownUp, BookmarkPlus, BookmarkCheck } from 'lucide-react'
 import { properties as propApi } from '../services/api'
 import PropertyCard from '../components/PropertyCard'
@@ -29,7 +29,14 @@ export default function Properties() {
   const [loading, setLoading] = useState(true)
   const [showFilters, setShowFilters] = useState(false)
   const [sortBy, setSortBy] = useState('featured')
-  const [savedSearches, setSavedSearches] = useState([])
+  const [savedSearches, setSavedSearches] = useState(() => {
+    try {
+      const stored = window.localStorage.getItem(SAVED_SEARCHES_KEY)
+      return stored ? JSON.parse(stored) : []
+    } catch {
+      return []
+    }
+  })
   const [savedNotice, setSavedNotice] = useState('')
   const [filters, setFilters] = useState({
     district: '',
@@ -39,8 +46,10 @@ export default function Properties() {
     bedrooms: '',
     page: 1,
   })
+  const filtersRef = useRef(filters)
+  const currentPage = filters.page
 
-  const fetchProperties = async (params = filters) => {
+  const fetchProperties = useCallback(async (params) => {
     setLoading(true)
     setSavedNotice('')
     try {
@@ -53,22 +62,15 @@ export default function Properties() {
     } finally {
       setLoading(false)
     }
-  }
-
-  useEffect(() => {
-    fetchProperties()
-  }, [filters.page])
-
-  useEffect(() => {
-    try {
-      const stored = window.localStorage.getItem(SAVED_SEARCHES_KEY)
-      if (stored) {
-        setSavedSearches(JSON.parse(stored))
-      }
-    } catch {
-      setSavedSearches([])
-    }
   }, [])
+
+  useEffect(() => {
+    filtersRef.current = filters
+  }, [filters])
+
+  useEffect(() => {
+    fetchProperties(filtersRef.current)
+  }, [currentPage, fetchProperties])
 
   useEffect(() => {
     if (!savedNotice) return undefined

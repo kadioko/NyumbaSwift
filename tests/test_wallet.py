@@ -130,6 +130,7 @@ def test_withdraw_uses_live_balance(client, mock_wallet_ntzs):
 
 def test_wallet_mobile_deposit_does_not_collect_to_treasury(monkeypatch):
     captured_payload = {}
+    monkeypatch.setattr(settings, "NTZS_API_KEY", "test-api-key")
 
     async def fake_ensure_user(**kwargs):
         return {"id": "ntzs-user-1"}
@@ -338,7 +339,7 @@ def test_shared_ntzs_webhook_completes_wallet_deposit(client, mock_wallet_ntzs, 
 
     webhook_resp = client.post(
         "/api/v1/ntzs/webhooks",
-        data=payload,
+        content=payload,
         headers={"x-ntzs-signature": signature, "Content-Type": "application/json"},
     )
     assert webhook_resp.status_code == 200

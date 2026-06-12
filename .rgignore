@@ -1,0 +1,6 @@
+app/frontend_bundle.py
+assets/
+frontend/dist/
+frontend/node_modules/
+.venv/
+.tmp/

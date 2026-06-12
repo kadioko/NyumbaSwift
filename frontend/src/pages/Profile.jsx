@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../context/useAuth'
 import { auth as authApi } from '../services/api'
 import { Phone, Mail, Shield, AlertCircle, CheckCircle, Loader2, Image as ImageIcon, BadgeCheck } from 'lucide-react'
@@ -8,6 +8,7 @@ const MAX_ID_IMAGE_BYTES = 5 * 1024 * 1024
 
 export default function Profile() {
   const { user, setUser } = useAuth()
+  const userIdRef = useRef(user?.id)
   const [editing, setEditing] = useState(false)
   const [form, setForm] = useState({ full_name: user?.full_name || '', email: user?.email || '' })
   const [nationalId, setNationalId] = useState(user?.national_id || '')
@@ -18,10 +19,19 @@ export default function Profile() {
   const [success, setSuccess] = useState('')
 
   useEffect(() => {
-    setForm({ full_name: user?.full_name || '', email: user?.email || '' })
-    setNationalId(user?.national_id || '')
-    setIdImage(user?.profile_photo_url || '')
-  }, [user])
+    if (userIdRef.current === user?.id) return undefined
+    let ignore = false
+    const run = async () => {
+      await Promise.resolve()
+      if (ignore) return
+      userIdRef.current = user?.id
+      setForm({ full_name: user?.full_name || '', email: user?.email || '' })
+      setNationalId(user?.national_id || '')
+      setIdImage(user?.profile_photo_url || '')
+    }
+    run()
+    return () => { ignore = true }
+  }, [user?.email, user?.full_name, user?.id, user?.national_id, user?.profile_photo_url])
 
   useEffect(() => {
     if (!success) return undefined

@@ -61,18 +61,27 @@ export default function PropertyDetail() {
   }
 
   useEffect(() => {
-    if (!user) {
-      setUnlockStatus(null)
-      return
-    }
+    let ignore = false
+    const run = async () => {
+      await Promise.resolve()
+      if (ignore) return
 
-    rentals.unlockStatus(Number(id))
-      .then(setUnlockStatus)
-      .catch((err) => {
-        if (!String(err.message).includes('Unlock not found')) {
+      if (!user) {
+        setUnlockStatus(null)
+        return
+      }
+
+      try {
+        const status = await rentals.unlockStatus(Number(id))
+        if (!ignore) setUnlockStatus(status)
+      } catch (err) {
+        if (!ignore && !String(err.message).includes('Unlock not found')) {
           setError(err.message)
         }
-      })
+      }
+    }
+    run()
+    return () => { ignore = true }
   }, [id, user])
 
   useEffect(() => {

@@ -6,7 +6,7 @@ from fastapi import Request
 from app.api.deps import get_current_user, require_admin
 from app.core.database import get_db
 from app.core.rate_limit import enforce_rate_limit
-from app.core.security import create_access_token, hash_password, verify_password
+from app.core.security import create_access_token, hash_password, password_needs_rehash, verify_password
 from app.models.user import User, VerificationStatus
 from app.models.wallet import Wallet
 from app.schemas.user import (
@@ -69,6 +69,10 @@ def login(data: UserLogin, request: Request, db: Session = Depends(get_db)):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN, detail="Account deactivated"
         )
+    if password_needs_rehash(user.hashed_password):
+        user.hashed_password = hash_password(data.password)
+        db.add(user)
+        db.commit()
     token = create_access_token({"sub": user.id})
     return TokenResponse(access_token=token, user=UserResponse.model_validate(user))
 

@@ -59,7 +59,15 @@ export default function Dashboard() {
     }
   }, [isAdmin, user])
 
-  useEffect(() => { loadDashboard() }, [loadDashboard])
+  useEffect(() => {
+    let ignore = false
+    const run = async () => {
+      await Promise.resolve()
+      if (!ignore) await loadDashboard()
+    }
+    run()
+    return () => { ignore = true }
+  }, [loadDashboard])
 
   useEffect(() => {
     if (!success) return undefined

@@ -127,7 +127,15 @@ export default function Wallet() {
     }
   }, [])
 
-  useEffect(() => { loadWallet() }, [loadWallet])
+  useEffect(() => {
+    let ignore = false
+    const run = async () => {
+      await Promise.resolve()
+      if (!ignore) await loadWallet()
+    }
+    run()
+    return () => { ignore = true }
+  }, [loadWallet])
 
   const clearMessages = () => { setError(''); setSuccess('') }
 

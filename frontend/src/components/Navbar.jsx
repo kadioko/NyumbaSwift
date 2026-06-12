@@ -1,6 +1,6 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/useAuth'
-import { useTheme } from '../context/ThemeContext'
+import { useTheme } from '../context/useTheme'
 import { Home, Search, LayoutDashboard, Users, LogOut, Menu, X, ShieldCheck, Sparkles, Wallet, Moon, Sun, RefreshCw } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { wallet as walletApi } from '../services/api'

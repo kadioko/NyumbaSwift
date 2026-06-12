@@ -24,7 +24,17 @@ def test_landlord_summary_empty(client):
     assert data["total_due_tzs"] == 0
 
 
-def test_landlord_summary_with_data(client, mock_snippe_processing):
+def test_landlord_summary_with_data(client, mock_snippe_processing, monkeypatch):
+    class FixedDateTime(datetime):
+        @classmethod
+        def now(cls, tz=None):
+            value = cls(2026, 4, 20, 12, 0, 0, tzinfo=timezone.utc)
+            if tz is None:
+                return value.replace(tzinfo=None)
+            return value.astimezone(tz)
+
+    monkeypatch.setattr("app.api.dashboard.datetime", FixedDateTime)
+
     # Setup landlord with property and rental
     landlord_resp = register_user(
         client, phone="0712300002", name="Landlord2", role="landlord", email="landlord2@example.com"
