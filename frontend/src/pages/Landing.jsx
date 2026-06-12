@@ -115,11 +115,11 @@ export default function Landing() {
                 Verified listings, identity-reviewed renters, trusted agents, and digital rent collection built for how Dar actually rents.
               </p>
               <div className="mb-10 flex flex-col gap-4 sm:flex-row">
-                <Link to="/properties" className="inline-flex items-center justify-center gap-2 rounded-2xl border border-amber-200/60 bg-amber-300 px-6 py-3.5 text-lg font-semibold text-slate-950 shadow-[0_22px_44px_rgba(8,17,13,0.28)] transition-transform hover:-translate-y-0.5 hover:bg-amber-200">
+                <Link to="/properties" className="hero-primary-cta inline-flex items-center justify-center gap-2 rounded-2xl border border-amber-200/60 bg-amber-300 px-6 py-3.5 text-lg font-semibold text-slate-950 shadow-[0_22px_44px_rgba(8,17,13,0.28)] transition-transform hover:-translate-y-0.5 hover:bg-amber-200">
                   <Search className="h-5 w-5" />
                   Browse Rentals
                 </Link>
-                <Link to="/register" className="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/22 bg-slate-950/30 px-6 py-3.5 text-lg font-semibold text-white shadow-[0_18px_36px_rgba(8,17,13,0.18)] transition-transform hover:-translate-y-0.5 hover:bg-slate-950/42">
+                <Link to="/register" className="hero-secondary-cta inline-flex items-center justify-center gap-2 rounded-2xl border border-white/22 bg-slate-950/30 px-6 py-3.5 text-lg font-semibold text-white shadow-[0_18px_36px_rgba(8,17,13,0.18)] transition-transform hover:-translate-y-0.5 hover:bg-slate-950/42">
                   {user ? 'Add Another Listing' : 'List Your Property'}
                   <ArrowRight className="h-5 w-5" />
                 </Link>

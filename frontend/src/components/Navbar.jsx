@@ -82,28 +82,28 @@ export default function Navbar() {
           </div>
 
           <div className="hidden md:flex items-center gap-3">
-            <Link to="/properties" className="flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-emerald-50 hover:text-emerald-700 dark:text-slate-300 dark:hover:bg-emerald-900/30 dark:hover:text-emerald-400">
+            <Link to="/properties" className="navbar-link flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-emerald-50 hover:text-emerald-700 dark:text-slate-300 dark:hover:bg-emerald-900/30 dark:hover:text-emerald-400">
               <Search className="w-4 h-4" />
               <span>Find Rentals</span>
             </Link>
-            <Link to="/agents" className="flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-emerald-50 hover:text-emerald-700 dark:text-slate-300 dark:hover:bg-emerald-900/30 dark:hover:text-emerald-400">
+            <Link to="/agents" className="navbar-link flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-emerald-50 hover:text-emerald-700 dark:text-slate-300 dark:hover:bg-emerald-900/30 dark:hover:text-emerald-400">
               <Users className="w-4 h-4" />
               <span>Agents</span>
             </Link>
             {user ? (
               <>
                 {isLandlord && (
-                  <Link to="/dashboard" className="flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-emerald-50 hover:text-emerald-700 dark:text-slate-300 dark:hover:bg-emerald-900/30 dark:hover:text-emerald-400">
+                  <Link to="/dashboard" className="navbar-link flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-emerald-50 hover:text-emerald-700 dark:text-slate-300 dark:hover:bg-emerald-900/30 dark:hover:text-emerald-400">
                     <LayoutDashboard className="w-4 h-4" />
                     <span>Dashboard</span>
                   </Link>
                 )}
                 {!isLandlord && (
-                  <Link to="/my-rentals" className="rounded-xl px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-emerald-50 hover:text-emerald-700 dark:text-slate-300 dark:hover:bg-emerald-900/30 dark:hover:text-emerald-400">
+                  <Link to="/my-rentals" className="navbar-link rounded-xl px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-emerald-50 hover:text-emerald-700 dark:text-slate-300 dark:hover:bg-emerald-900/30 dark:hover:text-emerald-400">
                     My Rentals
                   </Link>
                 )}
-                <Link to="/wallet" className="flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-emerald-50 hover:text-emerald-700 dark:text-slate-300 dark:hover:bg-emerald-900/30 dark:hover:text-emerald-400">
+                <Link to="/wallet" className="navbar-link flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-emerald-50 hover:text-emerald-700 dark:text-slate-300 dark:hover:bg-emerald-900/30 dark:hover:text-emerald-400">
                   <Wallet className="w-4 h-4" />
                   <span>Wallet</span>
                 </Link>
@@ -144,10 +144,10 @@ export default function Navbar() {
               </>
             ) : (
               <div className="ml-4 flex items-center gap-3">
-                <Link to="/login" className="rounded-xl px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-emerald-50 hover:text-emerald-700 dark:text-slate-300 dark:hover:bg-emerald-900/30 dark:hover:text-emerald-400">
+                <Link to="/login" className="navbar-link rounded-xl px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-emerald-50 hover:text-emerald-700 dark:text-slate-300 dark:hover:bg-emerald-900/30 dark:hover:text-emerald-400">
                   Sign In
                 </Link>
-                <Link to="/register" className="rounded-2xl bg-gradient-to-r from-emerald-600 via-emerald-600 to-teal-700 px-4 py-2.5 text-sm font-semibold text-white shadow-[0_16px_28px_rgba(15,127,95,0.24)] transition-transform hover:-translate-y-0.5 hover:from-emerald-700 hover:to-teal-800">
+                <Link to="/register" className="navbar-primary rounded-2xl bg-gradient-to-r from-emerald-600 via-emerald-600 to-teal-700 px-4 py-2.5 text-sm font-semibold text-white shadow-[0_16px_28px_rgba(15,127,95,0.24)] transition-transform hover:-translate-y-0.5 hover:from-emerald-700 hover:to-teal-800">
                   Get Started
                 </Link>
               </div>

@@ -195,4 +195,36 @@ a {
     background: rgba(13, 17, 23, 0.97);
     border-color: rgba(255, 255, 255, 0.08);
   }
+
+  .navbar-link {
+    color: #334155 !important;
+  }
+
+  .navbar-link:hover {
+    color: #047857 !important;
+  }
+
+  html.dark .navbar-link {
+    color: #dbeafe !important;
+  }
+
+  html.dark .navbar-link:hover {
+    color: #6ee7b7 !important;
+    background: rgba(6, 95, 70, 0.28) !important;
+  }
+
+  .navbar-primary,
+  html.dark .navbar-primary {
+    color: #ffffff !important;
+  }
+
+  .hero-primary-cta,
+  html.dark .hero-primary-cta {
+    color: #1f2937 !important;
+  }
+
+  .hero-secondary-cta,
+  html.dark .hero-secondary-cta {
+    color: #ffffff !important;
+  }
 }
