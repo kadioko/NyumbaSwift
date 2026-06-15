@@ -141,42 +141,42 @@ export default function Properties() {
     <div className="min-h-screen">
       <section className="px-4 pb-6 pt-5 sm:px-6 lg:px-8">
         <div className="shell-card mx-auto max-w-7xl rounded-[2rem] overflow-hidden">
-          <div className="grid gap-8 bg-[radial-gradient(circle_at_top_left,_rgba(15,127,95,0.13),_transparent_34%),radial-gradient(circle_at_top_right,_rgba(211,154,52,0.12),_transparent_22%),linear-gradient(135deg,_rgba(255,255,255,0.92),_rgba(241,247,242,0.94))] px-6 py-10 sm:px-8 lg:grid-cols-[1fr_auto] lg:items-end">
+          <div className="grid gap-8 bg-[radial-gradient(circle_at_top_left,_rgba(15,127,95,0.13),_transparent_34%),radial-gradient(circle_at_top_right,_rgba(211,154,52,0.12),_transparent_22%),linear-gradient(135deg,_rgba(255,255,255,0.92),_rgba(241,247,242,0.94))] px-6 py-10 sm:px-8 lg:grid-cols-[1fr_auto] lg:items-end dark:bg-[radial-gradient(circle_at_top_left,_rgba(16,185,129,0.13),_transparent_34%),radial-gradient(circle_at_top_right,_rgba(211,154,52,0.09),_transparent_22%),linear-gradient(135deg,_rgba(15,23,42,0.94),_rgba(8,13,18,0.96))]">
             <div>
               <span className="eyebrow mb-4">
                 <Sparkles className="h-3.5 w-3.5" />
                 Marketplace
               </span>
-              <h1 className="mb-3 max-w-3xl text-4xl font-bold text-slate-950 sm:text-5xl">Find homes with stronger trust signals.</h1>
-              <p className="max-w-2xl text-slate-600">
+              <h1 className="mb-3 max-w-3xl text-4xl font-bold text-slate-950 sm:text-5xl dark:text-white">Find homes with stronger trust signals.</h1>
+              <p className="max-w-2xl text-slate-600 dark:text-slate-300">
                 Browse verified rental listings across Dar es Salaam with clearer pricing, better screening cues, and faster access to serious opportunities.
               </p>
             </div>
-            <div className="rounded-[1.5rem] border border-white/80 bg-white/86 px-5 py-4 shadow-sm">
-              <div className="text-sm text-slate-500">Live inventory</div>
-              <div className="text-3xl font-bold text-slate-950">{total}</div>
-              <div className="text-sm text-emerald-700">properties currently matching your search</div>
+            <div className="rounded-[1.5rem] border border-white/80 bg-white/86 px-5 py-4 shadow-sm dark:border-white/10 dark:bg-slate-950/45">
+              <div className="text-sm text-slate-500 dark:text-slate-400">Live inventory</div>
+              <div className="text-3xl font-bold text-slate-950 dark:text-white">{total}</div>
+              <div className="text-sm text-emerald-700 dark:text-emerald-300">properties currently matching your search</div>
             </div>
           </div>
 
-          <div className="border-t border-slate-200/70 px-6 py-4 sm:px-8">
+          <div className="border-t border-slate-200/70 px-6 py-4 dark:border-white/8 sm:px-8">
             <div className="flex flex-wrap gap-2">
               {FEATURE_CHIPS.map((chip) => (
-                <span key={chip} className="rounded-full border border-slate-200 bg-white/82 px-3 py-1.5 text-sm text-slate-600">
+                <span key={chip} className="rounded-full border border-slate-200 bg-white/82 px-3 py-1.5 text-sm text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
                   {chip}
                 </span>
               ))}
             </div>
             {savedSearches.length > 0 && (
               <div className="mt-4">
-                <div className="mb-2 text-sm font-medium text-slate-500">Saved searches</div>
+                <div className="mb-2 text-sm font-medium text-slate-500 dark:text-slate-400">Saved searches</div>
                 <div className="flex flex-wrap gap-2">
                   {savedSearches.map((search) => (
                     <button
                       key={search.id}
                       type="button"
                       onClick={() => applySavedSearch(search)}
-                      className="rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1.5 text-sm text-emerald-700 transition-colors hover:bg-emerald-100"
+                      className="rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1.5 text-sm text-emerald-700 transition-colors hover:bg-emerald-100 dark:border-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300 dark:hover:bg-emerald-900/50"
                     >
                       {search.label}
                     </button>
@@ -196,7 +196,7 @@ export default function Properties() {
               <select
                 value={filters.district}
                 onChange={set('district')}
-                className="w-full rounded-2xl border border-slate-200 bg-white/90 py-3 pl-11 pr-4 text-slate-700 outline-none transition focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100"
+                className="w-full rounded-2xl border border-slate-200 bg-white/90 py-3 pl-11 pr-4 text-slate-700 outline-none transition focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:focus:border-emerald-500 dark:focus:ring-emerald-900/50"
               >
                 <option value="">All Districts</option>
                 {DISTRICTS.map((district) => (
@@ -210,8 +210,8 @@ export default function Properties() {
               onClick={() => setShowFilters(!showFilters)}
               className={`inline-flex items-center justify-center gap-2 rounded-2xl border px-4 py-3 font-medium transition-colors ${
                 showFilters
-                  ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
-                  : 'border-slate-200 bg-white/90 text-slate-700 hover:bg-slate-50'
+                  ? 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300'
+                  : 'border-slate-200 bg-white/90 text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700'
               }`}
             >
               <SlidersHorizontal className="h-4 w-4" />
@@ -227,27 +227,27 @@ export default function Properties() {
           </div>
 
           {showFilters && (
-            <div className="mt-4 rounded-[1.4rem] border border-slate-100 bg-white/86 p-4 sm:p-5">
+            <div className="mt-4 rounded-[1.4rem] border border-slate-100 bg-white/86 p-4 dark:border-slate-700 dark:bg-slate-900/78 sm:p-5">
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 <div>
-                  <label className="mb-1.5 block text-sm font-medium text-slate-700">Property Type</label>
-                  <select value={filters.property_type} onChange={set('property_type')} className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-slate-700 outline-none transition focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100">
+                  <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">Property Type</label>
+                  <select value={filters.property_type} onChange={set('property_type')} className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-slate-700 outline-none transition focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:focus:border-emerald-500 dark:focus:ring-emerald-900/50">
                     {TYPES.map(({ value, label }) => (
                       <option key={value} value={value}>{label}</option>
                     ))}
                   </select>
                 </div>
                 <div>
-                  <label className="mb-1.5 block text-sm font-medium text-slate-700">Min Rent (TZS)</label>
-                  <input type="number" placeholder="200000" value={filters.min_rent} onChange={set('min_rent')} className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-slate-700 outline-none transition focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100" />
+                  <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">Min Rent (TZS)</label>
+                  <input type="number" placeholder="200000" value={filters.min_rent} onChange={set('min_rent')} className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-slate-700 outline-none transition focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:placeholder-slate-500 dark:focus:border-emerald-500 dark:focus:ring-emerald-900/50" />
                 </div>
                 <div>
-                  <label className="mb-1.5 block text-sm font-medium text-slate-700">Max Rent (TZS)</label>
-                  <input type="number" placeholder="1000000" value={filters.max_rent} onChange={set('max_rent')} className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-slate-700 outline-none transition focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100" />
+                  <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">Max Rent (TZS)</label>
+                  <input type="number" placeholder="1000000" value={filters.max_rent} onChange={set('max_rent')} className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-slate-700 outline-none transition focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:placeholder-slate-500 dark:focus:border-emerald-500 dark:focus:ring-emerald-900/50" />
                 </div>
                 <div>
-                  <label className="mb-1.5 block text-sm font-medium text-slate-700">Bedrooms</label>
-                  <select value={filters.bedrooms} onChange={set('bedrooms')} className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-slate-700 outline-none transition focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100">
+                  <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">Bedrooms</label>
+                  <select value={filters.bedrooms} onChange={set('bedrooms')} className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-slate-700 outline-none transition focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:focus:border-emerald-500 dark:focus:ring-emerald-900/50">
                     <option value="">Any</option>
                     {[1, 2, 3, 4, 5].map((count) => (
                       <option key={count} value={count}>{count}+</option>
@@ -257,7 +257,7 @@ export default function Properties() {
               </div>
 
               {hasFilters && (
-                <button type="button" onClick={clearFilters} className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-slate-500 transition-colors hover:text-red-500">
+                <button type="button" onClick={clearFilters} className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-slate-500 transition-colors hover:text-red-500 dark:text-slate-400 dark:hover:text-red-400">
                   <X className="h-3.5 w-3.5" />
                   Clear all filters
                 </button>
@@ -268,22 +268,22 @@ export default function Properties() {
 
         <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div className="space-y-2">
-            <div className="text-sm text-slate-500">
+            <div className="text-sm text-slate-500 dark:text-slate-400">
               {total} {total === 1 ? 'property' : 'properties'} found
             </div>
             {activeFilterSummary.length > 0 && (
               <div className="flex flex-wrap gap-2">
                 {activeFilterSummary.map((item) => (
-                  <span key={item} className="rounded-full bg-white/85 px-3 py-1 text-xs font-medium text-slate-500 shadow-sm">
+                  <span key={item} className="rounded-full bg-white/85 px-3 py-1 text-xs font-medium text-slate-500 shadow-sm dark:bg-slate-800 dark:text-slate-300">
                     {item}
                   </span>
                 ))}
               </div>
             )}
-            {savedNotice && <div className="text-sm text-emerald-700">{savedNotice}</div>}
+            {savedNotice && <div className="text-sm text-emerald-700 dark:text-emerald-300">{savedNotice}</div>}
           </div>
           <div className="flex flex-col gap-2 sm:items-end">
-            <label className="flex items-center gap-2 text-sm text-slate-500">
+            <label className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
               <ArrowDownUp className="h-4 w-4" />
               Sort by
             </label>
@@ -291,7 +291,7 @@ export default function Properties() {
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="rounded-xl border border-slate-200 bg-white/90 px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100"
+                className="rounded-xl border border-slate-200 bg-white/90 px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:focus:border-emerald-500 dark:focus:ring-emerald-900/50"
               >
                 {SORT_OPTIONS.map((option) => (
                   <option key={option.value} value={option.value}>{option.label}</option>
@@ -301,7 +301,7 @@ export default function Properties() {
                 type="button"
                 onClick={saveCurrentSearch}
                 disabled={isCurrentSearchSaved}
-                className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white/90 px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 disabled:opacity-50"
+                className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white/90 px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
               >
                 {isCurrentSearchSaved ? <BookmarkCheck className="h-4 w-4 text-emerald-700" /> : <BookmarkPlus className="h-4 w-4" />}
                 {isCurrentSearchSaved ? 'Saved' : 'Save search'}
@@ -313,7 +313,7 @@ export default function Properties() {
         {loading ? (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {Array.from({ length: 6 }).map((_, index) => (
-              <div key={index} className="overflow-hidden rounded-[1.6rem] border border-white/70 bg-white/88 p-0 shadow-[0_18px_40px_rgba(17,36,25,0.08)]">
+              <div key={index} className="overflow-hidden rounded-[1.6rem] border border-white/70 bg-white/88 p-0 shadow-[0_18px_40px_rgba(17,36,25,0.08)] dark:border-white/8 dark:bg-slate-900/86">
                 <div className={skeletonBlock('h-56 rounded-none')} />
                 <div className="space-y-4 p-5">
                   <div className={skeletonBlock('h-6 w-3/4')} />
@@ -329,13 +329,13 @@ export default function Properties() {
           </div>
         ) : listings.length === 0 ? (
           <div className="shell-card rounded-[1.8rem] px-6 py-16 text-center">
-            <Building2 className="mx-auto mb-4 h-12 w-12 text-slate-300" />
-            <h3 className="mb-2 text-xl font-semibold text-slate-800">No properties found</h3>
-            <p className="mx-auto max-w-md text-slate-500">
+            <Building2 className="mx-auto mb-4 h-12 w-12 text-slate-300 dark:text-slate-500" />
+            <h3 className="mb-2 text-xl font-semibold text-slate-800 dark:text-white">No properties found</h3>
+            <p className="mx-auto max-w-md text-slate-500 dark:text-slate-400">
               Try adjusting your filters or search in a different district to widen the available inventory.
             </p>
             <div className="mt-6 flex flex-wrap justify-center gap-3">
-              <button type="button" onClick={clearFilters} className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
+              <button type="button" onClick={clearFilters} className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700">
                 Clear filters
               </button>
               {savedSearches[0] && (
