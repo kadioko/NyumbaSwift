@@ -153,8 +153,8 @@ export default function Landing() {
                 </div>
                 <div className="space-y-3">
                   {[['Verified landlord listings', '128'], ['Pending renter verifications', '12'], ['Unlocks completed this week', '43']].map(([label, value]) => (
-                    <div key={label} className="flex items-center justify-between rounded-2xl border border-white/8 bg-slate-950/22 px-4 py-3">
-                      <span className="text-sm text-emerald-50/80">{label}</span>
+                    <div key={label} className="flex items-center justify-between rounded-2xl border border-white/12 bg-slate-950/32 px-4 py-3">
+                      <span className="text-sm text-emerald-50">{label}</span>
                       <span className="text-sm font-semibold text-white">{value}</span>
                     </div>
                   ))}
@@ -164,17 +164,17 @@ export default function Landing() {
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="rounded-[1.5rem] border border-white/10 bg-white/7 p-5">
                   <Sparkles className="mb-3 h-5 w-5 text-amber-300" />
-                  <div className="text-sm text-emerald-100/70">Trust layer</div>
+                  <div className="text-sm text-emerald-100">Trust layer</div>
                   <div className="mt-1 text-lg font-semibold">Verification-first discovery</div>
-                  <p className="mt-2 text-sm leading-relaxed text-emerald-50/78">
+                  <p className="mt-2 text-sm leading-relaxed text-emerald-50">
                     Cleaner property presentation and stronger renter confidence before the first call.
                   </p>
                 </div>
                 <div className="rounded-[1.5rem] border border-white/10 bg-white/7 p-5">
                   <Landmark className="mb-3 h-5 w-5 text-emerald-300" />
-                  <div className="text-sm text-emerald-100/70">Landlord ops</div>
+                  <div className="text-sm text-emerald-100">Landlord ops</div>
                   <div className="mt-1 text-lg font-semibold">Payments and portfolio visibility</div>
-                  <p className="mt-2 text-sm leading-relaxed text-emerald-50/78">
+                  <p className="mt-2 text-sm leading-relaxed text-emerald-50">
                     Manage listings, occupancy, and rent flow without relying on scattered chats.
                   </p>
                 </div>
@@ -210,7 +210,7 @@ export default function Landing() {
                 <div key={label} className="rounded-[1.4rem] border border-slate-100 bg-white/85 px-4 py-5 text-center shadow-sm dark:border-slate-700 dark:bg-slate-800/80">
                   <Icon className="mx-auto mb-2 h-6 w-6 text-emerald-700 dark:text-emerald-400" />
                   <div className="text-2xl font-bold text-slate-950 dark:text-white">{value}</div>
-                  <div className="text-sm text-slate-500 dark:text-slate-400">{label}</div>
+                  <div className="text-sm text-slate-500 dark:text-slate-300">{label}</div>
                 </div>
               )
             })}
@@ -239,7 +239,7 @@ export default function Landing() {
                     <span className="text-sm font-bold uppercase tracking-[0.16em] text-emerald-700 dark:text-emerald-400">{step}</span>
                   </div>
                   <h3 className="mb-2 text-xl font-semibold text-slate-950 dark:text-white">{title}</h3>
-                  <p className="leading-relaxed text-slate-600 dark:text-slate-400">{desc}</p>
+                  <p className="leading-relaxed text-slate-600 dark:text-slate-300">{desc}</p>
                 </div>
               )
             })}
@@ -256,7 +256,7 @@ export default function Landing() {
                 For Landlords
               </div>
               <h2 className="mb-4 text-3xl font-bold text-slate-950 sm:text-4xl dark:text-white">Collect rent without the headache</h2>
-              <p className="mb-6 leading-relaxed text-slate-600 dark:text-slate-400">
+              <p className="mb-6 leading-relaxed text-slate-600 dark:text-slate-300">
                 Stop chasing tenants for rent. NyumbaSwift supports digital collection, cleaner communication, and a stronger trust layer across your portfolio.
               </p>
               <ul className="mb-8 space-y-3">
@@ -275,25 +275,25 @@ export default function Landing() {
 
             <div className="rounded-[2rem] bg-gradient-to-br from-emerald-900 via-emerald-800 to-teal-950 p-8 text-white shadow-[0_28px_90px_rgba(8,17,13,0.24)]">
               <div className="mb-4 rounded-[1.4rem] border border-white/10 bg-white/8 p-6">
-                <div className="mb-1 text-sm text-emerald-100/75">Monthly Rent Collected</div>
+                <div className="mb-1 text-sm text-emerald-50">Monthly Rent Collected</div>
                 <div className="text-3xl font-bold">TZS 12,400,000</div>
                 <div className="mt-1 text-sm text-emerald-300">+23% from last month</div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="rounded-[1.2rem] border border-white/10 bg-white/8 p-4">
-                  <div className="text-sm text-emerald-100/75">Properties</div>
+                  <div className="text-sm text-emerald-50">Properties</div>
                   <div className="text-xl font-bold">8</div>
                 </div>
                 <div className="rounded-[1.2rem] border border-white/10 bg-white/8 p-4">
-                  <div className="text-sm text-emerald-100/75">Occupancy</div>
+                  <div className="text-sm text-emerald-50">Occupancy</div>
                   <div className="text-xl font-bold text-emerald-300">94%</div>
                 </div>
                 <div className="rounded-[1.2rem] border border-white/10 bg-white/8 p-4">
-                  <div className="text-sm text-emerald-100/75">Active Tenants</div>
+                  <div className="text-sm text-emerald-50">Active Tenants</div>
                   <div className="text-xl font-bold">7</div>
                 </div>
                 <div className="rounded-[1.2rem] border border-white/10 bg-white/8 p-4">
-                  <div className="text-sm text-emerald-100/75">Platform Fee</div>
+                  <div className="text-sm text-emerald-50">Platform Fee</div>
                   <div className="text-xl font-bold">1.5%</div>
                 </div>
               </div>
@@ -306,10 +306,10 @@ export default function Landing() {
         <div className="shell-panel mx-auto max-w-7xl rounded-[2rem] px-6 py-16 text-center text-white sm:px-8">
           <Users className="mx-auto mb-4 h-12 w-12 text-emerald-400" />
           <h2 className="mb-4 text-3xl font-bold sm:text-4xl">Are you a broker?</h2>
-          <p className="mx-auto mb-8 max-w-2xl leading-relaxed text-emerald-50/70">
+          <p className="mx-auto mb-8 max-w-2xl leading-relaxed text-emerald-50">
             Turn market knowledge into verified income. Become a NyumbaSwift Verified Agent and get better visibility, cleaner workflows, and stronger trust with renters and landlords.
           </p>
-          <Link to="/agents/apply" className="inline-flex items-center gap-2 rounded-2xl bg-white px-8 py-3.5 text-lg font-semibold text-emerald-900 transition-transform hover:-translate-y-0.5 hover:bg-emerald-50">
+          <Link to="/agents/apply" className="home-final-cta inline-flex items-center gap-2 rounded-2xl bg-white px-8 py-3.5 text-lg font-semibold text-emerald-950 transition-transform hover:-translate-y-0.5 hover:bg-emerald-50">
             Apply as Verified Agent
             <ArrowRight className="w-5 h-5" />
           </Link>

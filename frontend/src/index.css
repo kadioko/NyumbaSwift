@@ -227,4 +227,9 @@ a {
   html.dark .hero-secondary-cta {
     color: #ffffff !important;
   }
+
+  .home-final-cta,
+  html.dark .home-final-cta {
+    color: #064e3b !important;
+  }
 }
