@@ -65,14 +65,14 @@ export default function Navbar() {
     <nav className="navbar-bar sticky top-0 z-50 border-b border-white/30 bg-white/72 backdrop-blur-xl supports-[backdrop-filter]:bg-white/62 dark:border-white/8 dark:bg-slate-950/80">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex min-h-18 items-center justify-between gap-4 py-3">
-          <div className="flex items-center gap-4">
-            <Link to="/" className="flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500 via-emerald-600 to-teal-800 shadow-[0_12px_28px_rgba(16,99,76,0.24)]">
+          <div className="flex min-w-0 items-center gap-4">
+            <Link to="/" className="flex min-w-0 items-center gap-3">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500 via-emerald-600 to-teal-800 shadow-[0_12px_28px_rgba(16,99,76,0.24)]">
                 <Home className="w-5 h-5 text-white" />
               </div>
-              <div>
-                <span className="block text-xl font-bold leading-none text-slate-950 dark:text-white">NyumbaSwift</span>
-                <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Verified rentals in Dar</span>
+              <div className="min-w-0">
+                <span className="block truncate text-xl font-bold leading-none text-slate-950 dark:text-white">NyumbaSwift</span>
+                <span className="hidden whitespace-nowrap text-[11px] font-medium uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400 min-[430px]:inline">Verified rentals in Dar</span>
               </div>
             </Link>
             <div className="hidden lg:inline-flex items-center gap-2 rounded-full border border-emerald-100 bg-emerald-50/85 px-3 py-1.5 text-xs font-semibold text-emerald-800 dark:border-emerald-800/60 dark:bg-emerald-900/30 dark:text-emerald-400">

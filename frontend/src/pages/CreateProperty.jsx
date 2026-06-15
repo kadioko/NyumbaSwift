@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { properties as propApi } from '../services/api'
 import { useAuth } from '../context/useAuth'
-import { ArrowLeft, Building, AlertCircle, CheckCircle } from 'lucide-react'
+import { ArrowLeft, Building, AlertCircle } from 'lucide-react'
+import { bannerStyles, buttonStyles, inputStyles, surfaceCard } from '../components/ui'
 
 const DISTRICTS = ['Kinondoni', 'Ilala', 'Temeke', 'Ubungo', 'Kigamboni']
 const TYPES = [
@@ -28,11 +29,11 @@ export default function CreateProperty() {
 
   if (!user || (user.role !== 'landlord' && user.role !== 'admin')) {
     return (
-      <div className="min-h-[60vh] flex items-center justify-center">
+      <div className="flex min-h-[60vh] items-center justify-center px-4">
         <div className="text-center">
-          <Building className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-700 mb-2">Landlord access required</h2>
-          <Link to="/register" className="text-emerald-600 font-medium">Register as landlord</Link>
+          <Building className="mx-auto mb-4 h-12 w-12 text-slate-300 dark:text-slate-600" />
+          <h2 className="mb-2 text-xl font-semibold text-slate-700 dark:text-slate-200">Landlord access required</h2>
+          <Link to="/register" className="font-medium text-emerald-600 dark:text-emerald-400">Register as landlord</Link>
         </div>
       </div>
     )
@@ -62,85 +63,86 @@ export default function CreateProperty() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-2xl mx-auto px-4">
-        <Link to="/dashboard" className="inline-flex items-center gap-1.5 text-gray-500 hover:text-emerald-600 mb-6 text-sm">
-          <ArrowLeft className="w-4 h-4" /> Back to dashboard
+    <div className="min-h-screen py-8">
+      <div className="mx-auto max-w-3xl px-4">
+        <Link to="/dashboard" className="mb-6 inline-flex items-center gap-1.5 text-sm text-slate-500 transition-colors hover:text-emerald-700 dark:text-slate-400 dark:hover:text-emerald-300">
+          <ArrowLeft className="h-4 w-4" /> Back to dashboard
         </Link>
 
-        <div className="bg-white rounded-2xl border border-gray-200 p-8">
-          <h1 className="text-2xl font-bold text-gray-900 mb-1">List a Property</h1>
-          <p className="text-gray-500 mb-6">Add your rental to reach thousands of tenants in Dar</p>
+        <div className={surfaceCard('p-0')}>
+          <div className="page-header-bg rounded-t-[1.75rem] px-6 py-6 sm:px-8">
+            <div className="eyebrow mb-3">Landlord listing</div>
+            <h1 className="mb-1 text-2xl font-bold text-slate-950 dark:text-white">List a Property</h1>
+            <p className="text-slate-600 dark:text-slate-400">Add your rental to reach tenants across Dar es Salaam.</p>
+          </div>
 
           {error && (
-            <div className="flex items-center gap-2 bg-red-50 text-red-700 px-4 py-3 rounded-lg mb-6 text-sm">
-              <AlertCircle className="w-4 h-4 shrink-0" />
+            <div className={bannerStyles('error', 'mx-6 mt-6 sm:mx-8')}>
+              <AlertCircle className="h-4 w-4 shrink-0" />
               {error}
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Basic info */}
+          <form onSubmit={handleSubmit} className="space-y-6 px-6 py-6 sm:px-8">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Title</label>
-              <input type="text" placeholder="e.g. 2BR Modern Apartment in Kinondoni" value={form.title} onChange={set('title')} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none" required />
+              <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">Title</label>
+              <input type="text" placeholder="e.g. 2BR Modern Apartment in Kinondoni" value={form.title} onChange={set('title')} className={inputStyles()} required />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Description</label>
-              <textarea placeholder="Describe your property..." value={form.description} onChange={set('description')} rows={3} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none resize-none" required />
+              <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">Description</label>
+              <textarea placeholder="Describe your property..." value={form.description} onChange={set('description')} rows={3} className={inputStyles('resize-none')} required />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-4 sm:grid-cols-2">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Property Type</label>
-                <select value={form.property_type} onChange={set('property_type')} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
+                <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">Property Type</label>
+                <select value={form.property_type} onChange={set('property_type')} className={inputStyles()}>
                   {TYPES.map(({ value, label }) => <option key={value} value={value}>{label}</option>)}
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">District</label>
-                <select value={form.district} onChange={set('district')} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
+                <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">District</label>
+                <select value={form.district} onChange={set('district')} className={inputStyles()}>
                   {DISTRICTS.map((d) => <option key={d} value={d}>{d}</option>)}
                 </select>
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-4 sm:grid-cols-2">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Ward</label>
-                <input type="text" placeholder="e.g. Msasani" value={form.ward} onChange={set('ward')} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none" required />
+                <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">Ward</label>
+                <input type="text" placeholder="e.g. Msasani" value={form.ward} onChange={set('ward')} className={inputStyles()} required />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Street</label>
-                <input type="text" placeholder="e.g. Old Bagamoyo Road" value={form.street} onChange={set('street')} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none" required />
+                <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">Street</label>
+                <input type="text" placeholder="e.g. Old Bagamoyo Road" value={form.street} onChange={set('street')} className={inputStyles()} required />
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid gap-4 sm:grid-cols-3">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Bedrooms</label>
-                <input type="number" min="0" value={form.bedrooms} onChange={set('bedrooms')} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none" />
+                <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">Bedrooms</label>
+                <input type="number" min="0" value={form.bedrooms} onChange={set('bedrooms')} className={inputStyles()} />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Bathrooms</label>
-                <input type="number" min="0" value={form.bathrooms} onChange={set('bathrooms')} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none" />
+                <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">Bathrooms</label>
+                <input type="number" min="0" value={form.bathrooms} onChange={set('bathrooms')} className={inputStyles()} />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Rent (TZS/mo)</label>
-                <input type="number" min="0" placeholder="500000" value={form.rent_amount} onChange={set('rent_amount')} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none" required />
+                <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">Rent (TZS/mo)</label>
+                <input type="number" min="0" placeholder="500000" value={form.rent_amount} onChange={set('rent_amount')} className={inputStyles()} required />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Deposit (TZS, optional)</label>
-              <input type="number" min="0" placeholder="Same as rent" value={form.deposit_amount} onChange={set('deposit_amount')} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none" />
+              <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">Deposit (TZS, optional)</label>
+              <input type="number" min="0" placeholder="Same as rent" value={form.deposit_amount} onChange={set('deposit_amount')} className={inputStyles()} />
             </div>
 
-            {/* Amenities */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Amenities</label>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">Amenities</label>
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                 {[
                   { key: 'furnished', label: 'Furnished' },
                   { key: 'has_water', label: 'Water' },
@@ -148,14 +150,14 @@ export default function CreateProperty() {
                   { key: 'has_parking', label: 'Parking' },
                   { key: 'has_security', label: 'Security' },
                 ].map(({ key, label }) => (
-                  <label key={key} className="flex items-center gap-2 cursor-pointer">
+                  <label key={key} className="flex cursor-pointer items-center gap-2 rounded-xl border border-slate-200 bg-white/70 px-3 py-2 dark:border-slate-700 dark:bg-slate-900/50">
                     <input
                       type="checkbox"
                       checked={form[key]}
                       onChange={set(key)}
-                      className="w-4 h-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500"
+                      className="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 dark:border-slate-600"
                     />
-                    <span className="text-sm text-gray-700">{label}</span>
+                    <span className="text-sm text-slate-700 dark:text-slate-300">{label}</span>
                   </label>
                 ))}
               </div>
@@ -164,7 +166,7 @@ export default function CreateProperty() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-emerald-600 text-white py-3 rounded-xl font-semibold hover:bg-emerald-700 transition-colors disabled:opacity-50"
+              className={buttonStyles({ fullWidth: true })}
             >
               {loading ? 'Listing...' : 'List Property'}
             </button>

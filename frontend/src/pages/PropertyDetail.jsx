@@ -112,8 +112,8 @@ export default function PropertyDetail() {
   if (!property) {
     return (
       <div className="mx-auto max-w-7xl px-4 py-12 text-center">
-        <h2 className="text-xl font-semibold text-slate-700">Property not found</h2>
-        <Link to="/properties" className="mt-2 inline-block text-emerald-700">Back to listings</Link>
+        <h2 className="text-xl font-semibold text-slate-700 dark:text-slate-200">Property not found</h2>
+        <Link to="/properties" className="mt-2 inline-block text-emerald-700 dark:text-emerald-400">Back to listings</Link>
       </div>
     )
   }
@@ -134,7 +134,7 @@ export default function PropertyDetail() {
   return (
     <div className="min-h-screen">
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-        <Link to="/properties" className="mb-6 inline-flex items-center gap-1.5 text-sm text-slate-500 transition-colors hover:text-emerald-700">
+        <Link to="/properties" className="mb-6 inline-flex items-center gap-1.5 text-sm text-slate-500 transition-colors hover:text-emerald-700 dark:text-slate-400 dark:hover:text-emerald-300">
           <ArrowLeft className="h-4 w-4" />
           Back to listings
         </Link>
@@ -142,7 +142,7 @@ export default function PropertyDetail() {
         <div className="grid gap-8 lg:grid-cols-3">
           <div className="space-y-6 lg:col-span-2">
             <div className="shell-card overflow-hidden rounded-[2rem]">
-              <div className="relative h-72 overflow-hidden bg-gradient-to-br from-emerald-50 via-stone-100 to-emerald-100 sm:h-96">
+              <div className="relative h-72 overflow-hidden bg-gradient-to-br from-emerald-50 via-stone-100 to-emerald-100 dark:from-slate-800 dark:via-slate-900 dark:to-emerald-950 sm:h-96">
                 {heroPhoto ? (
                   <img
                     src={heroPhoto}
@@ -151,7 +151,7 @@ export default function PropertyDetail() {
                     referrerPolicy="no-referrer"
                   />
                 ) : (
-                  <div className="flex h-full w-full items-center justify-center text-slate-400">Property Photos</div>
+                  <div className="flex h-full w-full items-center justify-center text-slate-400 dark:text-slate-500">Property Photos</div>
                 )}
                 <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-slate-950/55 to-transparent" />
                 <div className="absolute left-4 top-4 flex flex-wrap gap-2">
@@ -178,7 +178,7 @@ export default function PropertyDetail() {
                     key={photo.id}
                     type="button"
                     onClick={() => setSelectedPhoto(photo.photo_url)}
-                    className={`overflow-hidden rounded-[1.2rem] border-2 transition-all ${selectedPhoto === photo.photo_url ? 'border-emerald-500 shadow-sm' : 'border-transparent hover:border-emerald-200'}`}
+                    className={`overflow-hidden rounded-[1.2rem] border-2 transition-all ${selectedPhoto === photo.photo_url ? 'border-emerald-500 shadow-sm' : 'border-transparent hover:border-emerald-200 dark:hover:border-emerald-700'}`}
                   >
                     <img
                       src={photo.photo_url}
@@ -199,40 +199,40 @@ export default function PropertyDetail() {
                     <Sparkles className="h-3.5 w-3.5" />
                     Verified marketplace listing
                   </div>
-                  <h1 className="mb-2 text-3xl font-bold text-slate-950">{property.title}</h1>
-                  <div className="flex items-center gap-1.5 text-slate-500">
+                  <h1 className="mb-2 text-3xl font-bold text-slate-950 dark:text-white">{property.title}</h1>
+                  <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
                     <MapPin className="h-4 w-4" />
                     <span>{property.street}, {property.ward}, {property.district}</span>
                   </div>
                 </div>
-                <div className="rounded-[1.25rem] border border-emerald-100 bg-emerald-50 px-4 py-3 text-right">
-                  <div className="text-sm text-emerald-700">Monthly rent</div>
-                  <div className="text-2xl font-bold text-emerald-800">TZS {property.rent_amount?.toLocaleString()}</div>
+                <div className="rounded-[1.25rem] border border-emerald-100 bg-emerald-50 px-4 py-3 text-right dark:border-emerald-800 dark:bg-emerald-900/30">
+                  <div className="text-sm text-emerald-700 dark:text-emerald-300">Monthly rent</div>
+                  <div className="text-2xl font-bold text-emerald-800 dark:text-emerald-200">TZS {property.rent_amount?.toLocaleString()}</div>
                 </div>
               </div>
 
-              <div className="grid gap-3 border-y border-slate-100 py-4 sm:grid-cols-3">
-                <div className="flex items-center gap-2 rounded-xl bg-slate-50 px-3 py-3 text-slate-700">
-                  <Bed className="h-4 w-4 text-emerald-700" />
+              <div className="grid gap-3 border-y border-slate-100 py-4 dark:border-slate-800 sm:grid-cols-3">
+                <div className="flex items-center gap-2 rounded-xl bg-slate-50 px-3 py-3 text-slate-700 dark:bg-slate-800 dark:text-slate-200">
+                  <Bed className="h-4 w-4 text-emerald-700 dark:text-emerald-400" />
                   {property.bedrooms} Bedroom{property.bedrooms !== 1 ? 's' : ''}
                 </div>
-                <div className="flex items-center gap-2 rounded-xl bg-slate-50 px-3 py-3 text-slate-700">
-                  <Bath className="h-4 w-4 text-emerald-700" />
+                <div className="flex items-center gap-2 rounded-xl bg-slate-50 px-3 py-3 text-slate-700 dark:bg-slate-800 dark:text-slate-200">
+                  <Bath className="h-4 w-4 text-emerald-700 dark:text-emerald-400" />
                   {property.bathrooms} Bathroom{property.bathrooms !== 1 ? 's' : ''}
                 </div>
-                <div className="flex items-center gap-2 rounded-xl bg-slate-50 px-3 py-3 text-slate-700">
-                  <Maximize2 className="h-4 w-4 text-emerald-700" />
+                <div className="flex items-center gap-2 rounded-xl bg-slate-50 px-3 py-3 text-slate-700 dark:bg-slate-800 dark:text-slate-200">
+                  <Maximize2 className="h-4 w-4 text-emerald-700 dark:text-emerald-400" />
                   {property.size_sqm ? `${property.size_sqm} sqm` : 'Size not listed'}
                 </div>
               </div>
 
               <div className="mt-5">
-                <h3 className="mb-2 text-lg font-semibold text-slate-950">Description</h3>
-                <p className="leading-relaxed text-slate-600">{property.description}</p>
+                <h3 className="mb-2 text-lg font-semibold text-slate-950 dark:text-white">Description</h3>
+                <p className="leading-relaxed text-slate-600 dark:text-slate-300">{property.description}</p>
               </div>
 
               <div className="mt-6">
-                <h3 className="mb-3 text-lg font-semibold text-slate-950">Amenities</h3>
+                <h3 className="mb-3 text-lg font-semibold text-slate-950 dark:text-white">Amenities</h3>
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                   {amenities.map(({ label, available, icon }) => {
                     const Icon = icon
@@ -240,7 +240,7 @@ export default function PropertyDetail() {
                       <div
                         key={label}
                         className={`flex items-center gap-2 rounded-xl px-3 py-3 text-sm ${
-                          available ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-50 text-slate-400'
+                          available ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300' : 'bg-slate-50 text-slate-400 dark:bg-slate-800 dark:text-slate-500'
                         }`}
                       >
                         <Icon className="h-4 w-4" />
@@ -256,24 +256,24 @@ export default function PropertyDetail() {
           <div className="space-y-6">
             <div className={surfaceCard('sticky top-24')}>
               <div className="mb-5">
-                <div className="mb-1 text-sm text-slate-500">Monthly Rent</div>
+                <div className="mb-1 text-sm text-slate-500 dark:text-slate-400">Monthly Rent</div>
                 <div className="flex items-baseline gap-1">
-                  <span className="text-3xl font-bold text-emerald-700">TZS {property.rent_amount?.toLocaleString()}</span>
-                  <span className="text-slate-400">/month</span>
+                  <span className="text-3xl font-bold text-emerald-700 dark:text-emerald-300">TZS {property.rent_amount?.toLocaleString()}</span>
+                  <span className="text-slate-400 dark:text-slate-500">/month</span>
                 </div>
                 {property.deposit_amount && (
-                  <div className="mt-1 text-sm text-slate-500">
+                  <div className="mt-1 text-sm text-slate-500 dark:text-slate-400">
                     Deposit: TZS {property.deposit_amount?.toLocaleString()}
                   </div>
                 )}
               </div>
 
-              <div className="mb-5 rounded-[1.25rem] border border-slate-100 bg-slate-50 p-4">
-                <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-slate-800">
-                  <BadgeCheck className="h-4 w-4 text-emerald-700" />
+              <div className="mb-5 rounded-[1.25rem] border border-slate-100 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-900/60">
+                <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-slate-800 dark:text-slate-100">
+                  <BadgeCheck className="h-4 w-4 text-emerald-700 dark:text-emerald-400" />
                   Trust signals
                 </div>
-                <div className="space-y-2 text-sm text-slate-600">
+                <div className="space-y-2 text-sm text-slate-600 dark:text-slate-300">
                   <div>{property.is_verified ? 'Verified listing reviewed by the marketplace team.' : 'Listing verification still in progress.'}</div>
                   <div>{property.is_premium ? 'Premium placement means stronger visibility and fresher landlord response.' : 'Standard listing with direct unlock flow.'}</div>
                 </div>
@@ -299,26 +299,26 @@ export default function PropertyDetail() {
               )}
 
               {isUnlocked ? (
-                <div className="rounded-[1.25rem] border border-emerald-100 bg-emerald-50 p-4">
-                  <div className="mb-3 flex items-center gap-2 font-semibold text-emerald-700">
+                <div className="rounded-[1.25rem] border border-emerald-100 bg-emerald-50 p-4 dark:border-emerald-800 dark:bg-emerald-900/30">
+                  <div className="mb-3 flex items-center gap-2 font-semibold text-emerald-700 dark:text-emerald-300">
                     <Lock className="h-4 w-4" />
                     Contact Unlocked
                   </div>
                   <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-slate-700">
-                      <Phone className="h-4 w-4 text-emerald-600" />
+                    <div className="flex items-center gap-2 text-slate-700 dark:text-slate-200">
+                      <Phone className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                       <span className="font-medium">{unlockStatus.owner_phone}</span>
                     </div>
-                    <div className="text-sm text-slate-600">Owner: {unlockStatus.owner_name}</div>
+                    <div className="text-sm text-slate-600 dark:text-slate-300">Owner: {unlockStatus.owner_name}</div>
                   </div>
                 </div>
               ) : isPendingUnlock ? (
-                <div className="rounded-[1.25rem] border border-amber-200 bg-amber-50 p-4">
-                  <div className="mb-2 flex items-center gap-2 font-semibold text-amber-800">
+                <div className="rounded-[1.25rem] border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-900/30">
+                  <div className="mb-2 flex items-center gap-2 font-semibold text-amber-800 dark:text-amber-300">
                     <Loader2 className="h-4 w-4 animate-spin" />
                     Payment Pending
                   </div>
-                  <p className="text-sm leading-relaxed text-amber-700">
+                  <p className="text-sm leading-relaxed text-amber-700 dark:text-amber-200">
                     Approve the nTZS mobile money prompt on your phone. This page checks automatically and will reveal the landlord contact once the payment webhook completes.
                   </p>
                 </div>
@@ -337,7 +337,7 @@ export default function PropertyDetail() {
                 </Link>
               )}
 
-              <p className="mt-3 text-center text-xs text-slate-400">
+              <p className="mt-3 text-center text-xs text-slate-400 dark:text-slate-500">
                 Pay once to get the landlord&apos;s direct contact information.
               </p>
             </div>
