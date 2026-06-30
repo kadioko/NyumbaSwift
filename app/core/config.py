@@ -38,7 +38,7 @@ class Settings(BaseSettings):
     NTZS_BASE_URL: str = "https://www.ntzs.co.tz"
     NTZS_API_KEY: str = ""
     NTZS_WEBHOOK_SECRET: str = ""
-    PUBLIC_BASE_URL: str = "https://nyumbaswift.vercel.app"
+    PUBLIC_BASE_URL: str = "http://localhost:8000"
 
     @model_validator(mode="after")
     def validate_production_settings(self):

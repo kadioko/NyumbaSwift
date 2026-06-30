@@ -1,135 +1,122 @@
-# NyumbaSwift - Verified Rental Marketplace
+# NyumbaSwift
 
-Dar es Salaam's verified rental marketplace. Digital rent collection, property management, verified agents, and an in-app wallet — all in one platform.
+Verified rentals, digital rent collection, wallet-powered housing payments, and landlord operations for Dar es Salaam.
 
-## The Problem
+## What The App Does
 
-Dar's rental market runs on Facebook groups and hand-painted signs. No verification, no digital payments, no property management tools.
+- Verified renter, landlord, agent, and admin accounts
+- Property listings with search, premium boosts, and unlockable contact details
+- Rental agreements, rent collection, and landlord dashboards
+- In-app wallet for deposit, withdraw, transfer, and rent payments
+- nTZS-powered mobile money and card deposits plus mobile money withdrawals
 
-## The Solution
+## Key Features
 
-NyumbaSwift adds **verification**, **digital rent collection**, **an in-app wallet**, and **property management** in one app.
+- Verified listings before they go live
+- In-app wallet balances for tenants and landlords
+- Rent collection with platform fees and ledger history
+- Landlord due-date tracking and WhatsApp reminder links
+- Shared nTZS webhook handling for wallet, rent, and unlock flows
 
-### Key Features
+## Stack
 
-- **Verified Listings** — Every property goes through admin verification before going live
-- **Digital Rent Collection** — Tenants pay rent via mobile money. Platform takes 1.5% fee
-- **In-App Wallet** — Users hold a TZS balance, deposit via mobile money or card, withdraw to mobile money, and send to other NyumbaSwift users instantly
-- **Listing Unlock** — Renters pay TZS 5,000 to unlock landlord contact details
-- **Premium Listings** — Landlords boost visibility for TZS 20,000/month
-- **Verified Agents** — Convert brokers into "Verified Agents" who earn commissions
-- **Property Management Dashboard** — Landlords track properties, tenants, and revenue
+- Backend: FastAPI, SQLAlchemy, Pydantic
+- Database: SQLAlchemy ORM with SQLite in development and PostgreSQL in production
+- Auth: JWT plus bcrypt password hashing
+- Frontend: React 19, Vite 8, Tailwind CSS 4
+- Payments: nTZS partner API
+- Tests: pytest and Vitest
+- CI: GitHub Actions for backend, frontend, migrations, and embedded bundle freshness
 
-### Revenue Model
+## Local Development
 
-| Stream | Details |
-|--------|---------|
-| Rent Collection Fee | 1.5% on every rent payment processed |
-| Renter Unlock Fee | TZS 5,000 per listing contact reveal |
-| Premium Listings | TZS 20,000/month for boosted visibility |
-| Agent Commissions | Platform share from verified agent facilitated deals |
-| Wallet Float | Revenue potential from held wallet balances |
-
-### Revenue Path to $10M
-
-- 5,000 landlord units managed
-- $3M/month rent processed = $1M+ ARR
-- Before counting renter unlock fees, premium listings, or wallet float
-
-## Tech Stack
-
-- **Backend:** Python, FastAPI
-- **Database:** SQLAlchemy ORM + Alembic migrations (SQLite dev / PostgreSQL prod)
-- **Auth:** JWT (HS256) + bcrypt password hashing
-- **Payments:** nTZS partner API (mobile money + card deposits, withdrawals)
-- **Frontend:** React 19 + Vite + TailwindCSS 4
-- **Testing:** pytest (backend) + Vitest (frontend)
-- **CI:** GitHub Actions on Windows for backend, frontend, migrations, and embedded bundle freshness
-
-## Quick Start
+Backend setup:
 
 ```bash
-# Install backend dependencies in an isolated local virtualenv
 powershell -ExecutionPolicy Bypass -File scripts/setup_backend.ps1
-
-# Copy and configure environment
-cp .env.example .env
-
-# Run the dev server (serves both API and built frontend)
-.venv/Scripts/python -m uvicorn app.main:app --reload
-
-# API docs
-open http://localhost:8000/docs
-
-# Runtime probes
-open http://localhost:8000/health
-open http://localhost:8000/ready
-
-# Run backend tests
-powershell -ExecutionPolicy Bypass -File scripts/test_backend.ps1 -v
-
-# Verify database migrations against a fresh SQLite database
-powershell -ExecutionPolicy Bypass -File scripts/check_migrations.ps1
-
-# Frontend dev server
-cd frontend && npm install && npm run dev
 ```
+
+Frontend setup:
+
+```bash
+cd frontend
+npm install
+cd ..
+```
+
+Copy `.env.example` to `.env`, then start the backend:
+
+```bash
+.venv\Scripts\python -m uvicorn app.main:app --reload
+```
+
+Useful URLs:
+
+- API docs: `http://localhost:8000/docs`
+- App: `http://localhost:8000`
+- Health: `http://localhost:8000/health`
+- Ready probe: `http://localhost:8000/ready`
+- Frontend dev server only: `cd frontend && npm run dev`
 
 ## Development Workflow
 
-### Backend
-
-Use the project virtualenv scripts instead of installing into global Python:
+Backend checks:
 
 ```bash
-powershell -ExecutionPolicy Bypass -File scripts/setup_backend.ps1
 powershell -ExecutionPolicy Bypass -File scripts/test_backend.ps1
-```
-
-`scripts/test_backend.ps1` lowers `BCRYPT_ROUNDS` only for tests so local and CI checks stay fast while production keeps strong bcrypt defaults.
-
-### Database Migrations
-
-Alembic is configured in `alembic.ini` and `migrations/`. The initial revision is a schema baseline for the current SQLAlchemy models.
-
-```bash
-# Apply migrations to the configured database
-.venv/Scripts/python -m alembic upgrade head
-
-# Create a new autogenerated revision after model changes
-.venv/Scripts/python -m alembic revision --autogenerate -m "describe change"
-
-# Smoke-test migrations against a fresh SQLite database
 powershell -ExecutionPolicy Bypass -File scripts/check_migrations.ps1
 ```
 
-`AUTO_CREATE_TABLES=true` is convenient for local development. Production should run Alembic migrations and keep `AUTO_CREATE_TABLES=false`.
-
-### Frontend And Embedded Bundle
-
-The backend serves an embedded built frontend from `app/frontend_bundle.py`. After frontend changes, regenerate it:
+Frontend and embedded bundle:
 
 ```bash
 npm run build
 ```
 
-When dependencies are already installed, use the faster path:
+When frontend dependencies are already installed, the root bundle-only path is:
 
 ```bash
 npm run build:frontend-bundle
 ```
 
-CI checks that `app/frontend_bundle.py` is fresh with:
+CI validates the embedded frontend with:
 
 ```bash
 npm run check:frontend-bundle
 ```
 
-Frontend tests use `happy-dom` for faster DOM simulation and a single Vitest worker for stable Windows runs.
+## Environment Variables
+
+The backend and frontend use different public URLs when you deploy Railway + Vercel separately.
+
+### Backend on Railway
+
+Set these on Railway:
+
+```env
+DATABASE_URL=postgresql://...
+SECRET_KEY=replace-this
+NTZS_BASE_URL=https://www.ntzs.co.tz
+NTZS_API_KEY=your_ntzs_api_key
+NTZS_WEBHOOK_SECRET=your_ntzs_webhook_secret
+PUBLIC_BASE_URL=https://nyumbaswift-production.up.railway.app
+```
+
+`PUBLIC_BASE_URL` must be the public backend URL, not the Vercel frontend URL.
+
+### Frontend on Vercel
+
+Set this on Vercel:
+
+```env
+VITE_API_BASE_URL=https://nyumbaswift-production.up.railway.app
+```
+
+That makes the deployed frontend call the Railway backend instead of trying to use the same origin.
 
 ## Production Configuration
 
-Set these values explicitly before deploying:
+Set these explicitly before production deploys:
 
 - `ENVIRONMENT=production`
 - `DEBUG=false`
@@ -140,182 +127,111 @@ Set these values explicitly before deploying:
 - `CORS_ORIGINS=<browser origins if frontend and API are split>`
 - `NTZS_API_KEY=<partner api key>`
 - `NTZS_WEBHOOK_SECRET=<shared webhook secret>`
-- `PUBLIC_BASE_URL=<public https base url>`
+- `PUBLIC_BASE_URL=<public https backend base url>`
 
-Production startup validates that the dev secret, SQLite database, debug mode, weak bcrypt rounds, and wildcard hosts are not used.
+## nTZS Webhook Setup
+
+NyumbaSwift uses one shared webhook endpoint for wallet and rental payment events:
+
+```text
+https://nyumbaswift-production.up.railway.app/api/v1/ntzs/webhooks
+```
+
+In the nTZS developer dashboard:
+
+1. Paste the Railway webhook URL above into the webhook field.
+2. Save a secret string as `NTZS_WEBHOOK_SECRET` in Railway.
+3. Use the same exact secret value in the nTZS dashboard if your account supports signed webhook verification.
+
+Legacy paths under `/api/v1/wallet/webhooks/ntzs` and `/api/v1/rentals/webhooks/ntzs` still exist as aliases, but the shared endpoint above is the canonical route.
 
 ## Runtime Probes
 
 - `/health` returns safe runtime metadata for liveness checks.
 - `/ready` executes a database probe and reports whether the app is ready to serve traffic.
 
-All responses include conservative security headers, and production responses include HSTS.
+## Wallet And Rent Flow
 
-## API Endpoints
+### Deposit
 
-### Authentication
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/v1/auth/register` | Register (renter, landlord, agent, admin) |
-| POST | `/api/v1/auth/login` | Login with phone + password |
-| GET | `/api/v1/auth/me` | Get current user profile |
-| PATCH | `/api/v1/auth/me` | Update profile |
-| POST | `/api/v1/auth/verify` | Submit national ID for verification |
-| GET | `/api/v1/auth/verifications/pending` | Admin: pending verifications |
-| POST | `/api/v1/auth/verifications/{id}/review` | Admin: approve/reject |
+1. User starts a deposit from the wallet page.
+2. NyumbaSwift creates an nTZS deposit request.
+3. nTZS posts the result to `/api/v1/ntzs/webhooks`.
+4. The webhook marks the matching wallet transaction as `completed` or `failed`.
+5. The balance and recent activity refresh from the same transaction record.
+
+### Withdraw
+
+1. User requests a withdrawal of at least TZS 5,000.
+2. NyumbaSwift reserves the balance immediately.
+3. nTZS completes or fails the payout.
+4. The webhook finalizes the withdrawal or refunds the reserved amount.
+
+### Pay Rent With Wallet
+
+1. Tenant funds the wallet with mobile money or card.
+2. Tenant pays rent from the wallet balance.
+3. Rent payment records update the rental ledger.
+4. Landlord wallet balances can receive rent collections and outgoing transfers.
+
+## Main API Areas
+
+### Auth
+
+- `POST /api/v1/auth/register`
+- `POST /api/v1/auth/login`
+- `GET /api/v1/auth/me`
+- `PATCH /api/v1/auth/me`
 
 ### Properties
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/v1/properties/` | Create listing (landlord) |
-| GET | `/api/v1/properties/` | Search listings (district, type, rent, bedrooms) |
-| GET | `/api/v1/properties/{id}` | Get property details |
-| PATCH | `/api/v1/properties/{id}` | Update listing |
-| POST | `/api/v1/properties/{id}/verify` | Admin verifies listing |
-| POST | `/api/v1/properties/{id}/boost` | Upgrade to premium |
 
-### Rentals & Payments
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/v1/rentals/` | Create rental agreement (landlord) |
-| GET | `/api/v1/rentals/my` | My rentals (tenant or landlord) |
-| POST | `/api/v1/rentals/{id}/end` | End rental |
-| POST | `/api/v1/rentals/payments` | Initiate rent payment (tenant) |
-| POST | `/api/v1/rentals/payments/{id}/confirm` | Confirm payment reference |
-| GET | `/api/v1/rentals/payments/history` | Payment history |
-| POST | `/api/v1/rentals/unlock` | Unlock landlord contact (TZS 5,000) |
-| GET | `/api/v1/rentals/unlock/{property_id}` | Check unlock status |
-| POST | `/api/v1/rentals/webhooks/ntzs` | nTZS webhook handler (rent/unlock) |
+- `GET /api/v1/properties/`
+- `GET /api/v1/properties/{id}`
+- `POST /api/v1/properties/`
+- `PATCH /api/v1/properties/{id}`
+
+### Rentals
+
+- `POST /api/v1/rentals/`
+- `GET /api/v1/rentals/my`
+- `POST /api/v1/rentals/payments`
+- `GET /api/v1/rentals/payments/history`
+- `POST /api/v1/rentals/unlock`
 
 ### Wallet
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/v1/wallet/` | Get wallet balance + recent 10 transactions |
-| GET | `/api/v1/wallet/transactions` | Full transaction history |
-| POST | `/api/v1/wallet/deposit` | Initiate deposit (mobile money or card) |
-| POST | `/api/v1/wallet/deposit/{tx_id}/confirm` | Manually confirm deposit with reference |
-| POST | `/api/v1/wallet/withdraw` | Withdraw balance to mobile money |
-| POST | `/api/v1/wallet/send` | Send TZS to another NyumbaSwift user by phone |
-| POST | `/api/v1/wallet/webhooks/ntzs` | nTZS webhook handler (wallet deposits/withdrawals) |
 
-#### Deposit request body
-```json
-{
-  "amount": 50000,
-  "payment_method": "mobile_money",
-  "phone": "0712345678"
-}
-```
-or for card:
-```json
-{
-  "amount": 50000,
-  "payment_method": "card",
-  "card_number": "4111111111111111",
-  "card_expiry_month": "12",
-  "card_expiry_year": "2027",
-  "card_cvv": "123",
-  "card_holder_name": "Amina Hassan"
-}
+- `GET /api/v1/wallet/`
+- `GET /api/v1/wallet/transactions`
+- `POST /api/v1/wallet/deposit`
+- `POST /api/v1/wallet/withdraw`
+- `POST /api/v1/wallet/send`
+
+### Webhooks
+
+- `POST /api/v1/ntzs/webhooks`
+
+## Test Commands
+
+Backend:
+
+```bash
+.\.venv\Scripts\python.exe -m pytest -q
 ```
 
-#### Send request body
-```json
-{
-  "recipient_phone": "0756789012",
-  "amount": 10000,
-  "note": "Rent deposit"
-}
+Frontend:
+
+```bash
+cd frontend
+npm test
+npm run build
 ```
 
-### Verified Agents
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/v1/agents/apply` | Apply as verified agent |
-| GET | `/api/v1/agents/me` | My agent profile |
-| GET | `/api/v1/agents/` | List approved agents |
-| GET | `/api/v1/agents/pending` | Admin: pending applications |
-| POST | `/api/v1/agents/{id}/review` | Admin: approve/reject agent |
+## Seed Data
 
-### Dashboard
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/v1/dashboard/landlord/summary` | Landlord dashboard summary |
-| GET | `/api/v1/dashboard/landlord/properties` | Landlord property details |
-| GET | `/api/v1/dashboard/admin/platform-stats` | Platform-wide stats |
+Sample accounts and seeded listings are documented in `TESTING_DATA.md`.
 
-## Wallet Flow
+Run the seed script with:
 
-```
-User → Deposit (mobile money or card)
-     → nTZS processes payment
-     → Webhook fires deposit.completed → balance credited
-     → (or) User manually confirms with reference
-
-User → Withdraw
-     → Balance reserved immediately
-     → nTZS sends to mobile money
-     → Webhook fires withdrawal.completed → finalized
-     → (on failure) webhook fires withdrawal.failed → balance refunded
-
-User → Send to User
-     → Instant in-platform transfer (no nTZS call)
-     → Sender balance debited, recipient balance credited atomically
-```
-
-## Project Structure
-
-```
-app/
-├── api/           # Route handlers
-│   ├── auth.py        # Registration, login, verification
-│   ├── properties.py  # CRUD, search, verify, boost
-│   ├── rentals.py     # Rentals, payments, unlock
-│   ├── agents.py      # Verified agent system
-│   ├── dashboard.py   # Management dashboards
-│   ├── wallet.py      # Wallet: deposit, withdraw, send, webhooks
-│   └── deps.py        # Auth dependencies
-├── models/        # SQLAlchemy models
-│   ├── user.py        # Users with roles & verification
-│   ├── property.py    # Properties & photos
-│   ├── rental.py      # Rentals, payments, unlocks
-│   ├── agent.py       # Agent profiles
-│   └── wallet.py      # Wallet + WalletTransaction
-├── schemas/       # Pydantic request/response models
-│   └── wallet.py      # Wallet schemas
-├── services/
-│   └── ntzs.py        # nTZS partner API (deposits, withdrawals, card)
-├── core/          # Config, database, security
-└── main.py        # FastAPI app entry point
-frontend/src/
-├── pages/
-│   └── Wallet.jsx     # Wallet UI (balance, deposit, withdraw, send, history)
-├── services/
-│   └── api.js         # API client including wallet.*
-└── components/
-    └── Navbar.jsx     # Wallet link for authenticated users
-tests/             # Full test suite
-```
-
-## Key Insight
-
-> Convert brokers into "Verified Agents" — turn your biggest threat into your sales force.
-
-Brokers already know the market. Instead of fighting them, NyumbaSwift gives them a verified badge, commission tracking, and digital tools. They bring listings; we process payments.
-
-## Environment Variables
-
-Copy `.env.example` to `.env` and configure:
-
-```env
-DATABASE_URL=sqlite:///./nyumbaswift.db
-SECRET_KEY=your-secret-key-here
-
-# nTZS Partner API (required for payments and wallet)
-NTZS_API_KEY=your-ntzs-api-key
-NTZS_WEBHOOK_SECRET=your-webhook-secret
-NTZS_BASE_URL=https://www.ntzs.co.tz
-
-# Public URL for webhook callbacks
-PUBLIC_BASE_URL=https://nyumbaswift.vercel.app
+```bash
+python seed_test_data.py
 ```

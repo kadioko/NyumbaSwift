@@ -235,6 +235,62 @@ def test_confirm_deposit_reconciles_from_live_balance_when_status_lookup_fails(c
     assert wallet_resp.json()["balance_tzs"] == 10000
 
 
+def test_withdrawal_reconciles_from_live_balance_when_status_lookup_fails(client, monkeypatch):
+    live_balance = {"value": 10000}
+
+    async def fake_get_ntzs_user(*, user_id=None, external_id=None, email=None, full_name=None, phone=None):
+        resolved_id = str(user_id or external_id or "1")
+        return {
+            "id": f"ntzs-{resolved_id}",
+            "balanceTzs": live_balance["value"],
+            "balanceUsdc": 0,
+            "walletAddress": f"0x{resolved_id.zfill(40)[:40]}",
+        }
+
+    async def fake_withdrawal(**kwargs):
+        return {
+            "id": "wd-live-1",
+            "status": "submitted",
+            "amount": kwargs.get("amount"),
+            "message": "Withdrawal submitted",
+        }
+
+    async def fake_get_withdrawal_status(reference):
+        raise ntzs_service.NTZSError("withdrawal status lookup unavailable")
+
+    monkeypatch.setattr("app.api.wallet.ntzs_service.get_ntzs_user", fake_get_ntzs_user)
+    monkeypatch.setattr("app.api.wallet.ntzs_service.create_withdrawal", fake_withdrawal)
+    monkeypatch.setattr("app.api.wallet.ntzs_service.get_withdrawal_status", fake_get_withdrawal_status)
+
+    token = register_user(
+        client,
+        phone="0712400010",
+        name="Withdraw Recon User",
+        email="withdraw-recon@example.com",
+    ).json()["access_token"]
+
+    withdraw_resp = client.post(
+        "/api/v1/wallet/withdraw",
+        headers=auth_header(token),
+        json={
+            "amount": 5000,
+            "phone": "0712400010",
+        },
+    )
+    assert withdraw_resp.status_code == 202
+    assert withdraw_resp.json()["status"] == "processing"
+
+    live_balance["value"] = 5000
+    wallet_resp = client.get("/api/v1/wallet/", headers=auth_header(token))
+    assert wallet_resp.status_code == 200
+    assert wallet_resp.json()["balance_tzs"] == 5000
+
+    txns_resp = client.get("/api/v1/wallet/transactions", headers=auth_header(token))
+    assert txns_resp.status_code == 200
+    assert txns_resp.json()[0]["type"] == "withdrawal"
+    assert txns_resp.json()[0]["status"] == "completed"
+
+
 def test_reconciliation_prefers_exact_recent_deposit_match(client, monkeypatch):
     live_balance = {"value": 0}
 
@@ -348,3 +404,55 @@ def test_shared_ntzs_webhook_completes_wallet_deposit(client, mock_wallet_ntzs, 
     transactions_resp = client.get("/api/v1/wallet/transactions", headers=auth_header(token))
     assert transactions_resp.status_code == 200
     assert transactions_resp.json()[0]["status"] == "completed"
+
+
+def test_shared_ntzs_webhook_updates_both_transfer_transactions(client, mock_wallet_ntzs, monkeypatch):
+    monkeypatch.setattr(settings, "NTZS_WEBHOOK_SECRET", "test-secret")
+
+    sender_token = register_user(
+        client,
+        phone="0712400011",
+        name="Webhook Sender",
+        email="webhook-sender@example.com",
+    ).json()["access_token"]
+    recipient_token = register_user(
+        client,
+        phone="0712400012",
+        name="Webhook Recipient",
+        email="webhook-recipient@example.com",
+    ).json()["access_token"]
+
+    send_resp = client.post(
+        "/api/v1/wallet/send",
+        headers=auth_header(sender_token),
+        json={
+            "recipient_phone": "0712400012",
+            "amount": 5000,
+            "note": "Webhook transfer",
+        },
+    )
+    assert send_resp.status_code == 200
+
+    event = {
+        "type": "transfer.failed",
+        "data": {
+            "transferId": "transfer-1",
+        },
+    }
+    payload = json.dumps(event).encode()
+    signature = hmac.new(settings.NTZS_WEBHOOK_SECRET.encode(), payload, hashlib.sha256).hexdigest()
+
+    webhook_resp = client.post(
+        "/api/v1/ntzs/webhooks",
+        data=payload,
+        headers={"x-ntzs-signature": signature, "Content-Type": "application/json"},
+    )
+    assert webhook_resp.status_code == 200
+    assert webhook_resp.json()["status"] == "ok"
+
+    sender_transactions = client.get("/api/v1/wallet/transactions", headers=auth_header(sender_token))
+    recipient_transactions = client.get("/api/v1/wallet/transactions", headers=auth_header(recipient_token))
+    assert sender_transactions.status_code == 200
+    assert recipient_transactions.status_code == 200
+    assert sender_transactions.json()[0]["status"] == "failed"
+    assert recipient_transactions.json()[0]["status"] == "failed"

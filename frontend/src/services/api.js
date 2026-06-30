@@ -1,4 +1,14 @@
-const API_BASE = '/api/v1'
+function resolveApiBase() {
+  const configured = import.meta.env.VITE_API_BASE_URL?.trim()
+  if (!configured) return '/api/v1'
+
+  const withoutTrailingSlash = configured.replace(/\/+$/, '')
+  return withoutTrailingSlash.endsWith('/api/v1')
+    ? withoutTrailingSlash
+    : `${withoutTrailingSlash}/api/v1`
+}
+
+const API_BASE = resolveApiBase()
 
 function getToken() {
   return localStorage.getItem('nyumbaswift_token')

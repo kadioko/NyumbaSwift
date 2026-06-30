@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.models.rental import ListingUnlock, PaymentStatus, RentPayment
 from app.models.user import User
-from app.models.wallet import TransactionStatus, TransactionType, Wallet, WalletTransaction
+from app.models.wallet import TransactionStatus, Wallet, WalletTransaction
 from app.services import ntzs as ntzs_service
 
 router = APIRouter(prefix="/ntzs", tags=["nTZS Webhooks"])
@@ -27,20 +27,13 @@ async def _sync_wallet_balance(user: User, wallet: Wallet, db: Session):
     db.commit()
 
 
-@router.post("/webhooks", include_in_schema=False)
-async def ntzs_webhook(request: Request, db: Session = Depends(get_db)):
-    body = await request.body()
-    signature = request.headers.get("x-ntzs-signature")
-    if not ntzs_service.verify_webhook_signature(body, signature):
-        raise HTTPException(status_code=401, detail="Invalid webhook signature")
-
+async def process_ntzs_webhook_event(event: dict, db: Session):
     try:
-        event = await request.json()
+        data = event.get("data", {})
+        event_type = event.get("type", "")
     except Exception as exc:  # pragma: no cover - defensive parsing
         raise HTTPException(status_code=400, detail="Invalid JSON payload") from exc
 
-    data = event.get("data", {})
-    event_type = event.get("type", "")
     ref = str(
         data.get("depositId")
         or data.get("withdrawalId")
@@ -51,25 +44,35 @@ async def ntzs_webhook(request: Request, db: Session = Depends(get_db)):
     if not ref:
         return {"status": "ignored"}
 
-    txn = db.query(WalletTransaction).filter(WalletTransaction.ntzs_reference == ref).first()
-    if txn:
-        wallet = db.query(Wallet).filter(Wallet.id == txn.wallet_id).first()
-        user = db.query(User).filter(User.id == wallet.user_id).first() if wallet else None
+    txns = db.query(WalletTransaction).filter(WalletTransaction.ntzs_reference == ref).all()
+    if txns:
+        touched_wallet_ids = {txn.wallet_id for txn in txns}
         if event_type in {"deposit.completed", "withdrawal.completed"}:
-            txn.status = TransactionStatus.COMPLETED
-            txn.completed_at = txn.completed_at or datetime.now(timezone.utc)
+            for txn in txns:
+                txn.status = TransactionStatus.COMPLETED
+                txn.completed_at = txn.completed_at or datetime.now(timezone.utc)
             db.commit()
-            if wallet and user:
-                await _sync_wallet_balance(user, wallet, db)
+            for wallet_id in touched_wallet_ids:
+                wallet = db.query(Wallet).filter(Wallet.id == wallet_id).first()
+                user = db.query(User).filter(User.id == wallet.user_id).first() if wallet else None
+                if wallet and user:
+                    await _sync_wallet_balance(user, wallet, db)
         elif event_type in {"deposit.failed", "withdrawal.failed"}:
-            txn.status = TransactionStatus.FAILED
+            for txn in txns:
+                txn.status = TransactionStatus.FAILED
             db.commit()
-        elif event_type == "transfer.completed":
-            txn.status = TransactionStatus.COMPLETED
-            txn.completed_at = txn.completed_at or datetime.now(timezone.utc)
+        elif event_type in {"transfer.completed", "transfer.success", "transfer.successful"}:
+            for txn in txns:
+                txn.status = TransactionStatus.COMPLETED
+                txn.completed_at = txn.completed_at or datetime.now(timezone.utc)
+            db.commit()
+        elif event_type in {"transfer.failed", "transfer.cancelled", "transfer.canceled"}:
+            for txn in txns:
+                txn.status = TransactionStatus.FAILED
             db.commit()
         else:
-            txn.status = TransactionStatus.PROCESSING
+            for txn in txns:
+                txn.status = TransactionStatus.PROCESSING
             db.commit()
         return {"status": "ok"}
 
@@ -101,3 +104,22 @@ async def ntzs_webhook(request: Request, db: Session = Depends(get_db)):
         return {"status": "ok"}
 
     return {"status": "not_found"}
+
+
+async def process_ntzs_webhook_request(request: Request, db: Session):
+    body = await request.body()
+    signature = request.headers.get("x-ntzs-signature")
+    if not ntzs_service.verify_webhook_signature(body, signature):
+        raise HTTPException(status_code=401, detail="Invalid webhook signature")
+
+    try:
+        event = await request.json()
+    except Exception as exc:  # pragma: no cover - defensive parsing
+        raise HTTPException(status_code=400, detail="Invalid JSON payload") from exc
+
+    return await process_ntzs_webhook_event(event, db)
+
+
+@router.post("/webhooks", include_in_schema=False)
+async def ntzs_webhook(request: Request, db: Session = Depends(get_db)):
+    return await process_ntzs_webhook_request(request, db)

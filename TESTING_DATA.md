@@ -57,6 +57,13 @@ testpass123
 | 2BR Furnished Apartment in Mikocheni | Rehema Renter | active | current month | completed |
 | 3BR Family House in Temeke | Juma Renter | active | current month | pending |
 
+## Wallet and payment testing notes
+
+- Wallet deposits and withdrawals are reconciled through the shared webhook route: `POST /api/v1/ntzs/webhooks`.
+- The frontend should point to the Railway backend by setting `VITE_API_BASE_URL`.
+- The backend should expose its Railway domain as `PUBLIC_BASE_URL` so nTZS callbacks land on the API, not the Vercel frontend.
+- Withdrawal validation now enforces a TZS 5,000 minimum.
+
 ## Verification scenario quick checks
 
 - **Admin review**: log in as `Amina Admin` and review `Asha Pending` from the dashboard verification area.

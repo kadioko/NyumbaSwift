@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user, require_landlord
+from app.api.ntzs_webhooks import process_ntzs_webhook_request
 from app.core.config import settings
 from app.core.database import get_db
 from app.core.rate_limit import enforce_rate_limit
@@ -32,7 +33,6 @@ from app.services.ntzs import (
     create_transfer,
     get_ntzs_user,
     get_payment_status,
-    verify_webhook_signature,
 )
 
 router = APIRouter(prefix="/rentals", tags=["Rentals & Payments"])
@@ -143,6 +143,15 @@ def create_rental(
     ).first()
     if not prop:
         raise HTTPException(status_code=404, detail="Property not found or not owned by you")
+    tenant = db.query(User).filter(User.id == data.tenant_id, User.is_active.is_(True)).first()
+    if not tenant:
+        raise HTTPException(status_code=404, detail="Tenant not found")
+    existing_active_rental = db.query(Rental).filter(
+        Rental.property_id == data.property_id,
+        Rental.status == RentalStatus.ACTIVE,
+    ).first()
+    if existing_active_rental:
+        raise HTTPException(status_code=400, detail="This property already has an active rental")
 
     rental = Rental(
         property_id=data.property_id,
@@ -556,46 +565,4 @@ async def unlock_listing(
 
 @router.post("/webhooks/ntzs", include_in_schema=False)
 async def ntzs_webhook(request: Request, db: Session = Depends(get_db)):
-    payload = await request.body()
-    signature = request.headers.get("x-ntzs-signature")
-    if not verify_webhook_signature(payload, signature):
-        raise HTTPException(status_code=401, detail="Invalid webhook signature")
-
-    event = await request.json()
-    data = event.get("data", {})
-    event_type = event.get("type")
-    deposit_id = str(data.get("depositId") or "")
-
-    if not deposit_id:
-        return {"received": True}
-
-    payment = db.query(RentPayment).filter(RentPayment.mpesa_reference == deposit_id).first()
-    if payment:
-        if event_type == "deposit.completed":
-            payment.status = PaymentStatus.COMPLETED
-            payment.mpesa_reference = deposit_id
-            payment.paid_at = datetime.now(timezone.utc)
-            payment.notes = None
-        elif event_type == "deposit.failed":
-            payment.status = PaymentStatus.FAILED
-            payment.mpesa_reference = deposit_id
-            payment.notes = "Provider status: failed"
-        else:
-            payment.status = PaymentStatus.PROCESSING
-            payment.mpesa_reference = deposit_id
-            payment.notes = f"Provider status: {_provider_payment_status(data) or 'processing'}"
-        db.commit()
-        return {"received": True}
-
-    unlock = db.query(ListingUnlock).filter(
-        ListingUnlock.mpesa_reference == f"pending:{deposit_id}"
-    ).first()
-    if not unlock:
-        return {"received": True}
-
-    if event_type == "deposit.completed":
-        unlock.mpesa_reference = deposit_id
-    elif event_type == "deposit.failed":
-        unlock.mpesa_reference = f"failed:{deposit_id}"
-    db.commit()
-    return {"received": True}
+    return await process_ntzs_webhook_request(request, db)

@@ -58,6 +58,51 @@ def test_create_rental(client):
     assert rental_id is not None
 
 
+def test_create_rental_rejects_missing_tenant(client):
+    landlord_resp = register_user(
+        client, phone="0712100021", name="Landlord Missing Tenant", role="landlord", email="landlord-missing@example.com"
+    )
+    landlord_token = landlord_resp.json()["access_token"]
+
+    prop_resp = client.post(
+        "/api/v1/properties/",
+        headers=auth_header(landlord_token),
+        json=SAMPLE_PROPERTY,
+    )
+
+    resp = client.post(
+        "/api/v1/rentals/",
+        headers=auth_header(landlord_token),
+        json={
+            "property_id": prop_resp.json()["id"],
+            "tenant_id": 999999,
+            "monthly_rent": 300000,
+            "start_date": "2026-03-01T00:00:00Z",
+        },
+    )
+    assert resp.status_code == 404
+
+
+def test_create_rental_rejects_second_active_rental_for_property(client):
+    landlord_token, tenant_token, prop_id, rental_id = setup_rental(client)
+    second_tenant_resp = register_user(
+        client, phone="0712100022", name="Second Tenant", role="renter", email="tenant-two@example.com"
+    )
+    second_tenant_id = second_tenant_resp.json()["user"]["id"]
+
+    resp = client.post(
+        "/api/v1/rentals/",
+        headers=auth_header(landlord_token),
+        json={
+            "property_id": prop_id,
+            "tenant_id": second_tenant_id,
+            "monthly_rent": 300000,
+            "start_date": "2026-04-01T00:00:00Z",
+        },
+    )
+    assert resp.status_code == 400
+
+
 def test_initiate_rent_payment(client, mock_snippe_processing):
     landlord_token, tenant_token, prop_id, rental_id = setup_rental(client)
 

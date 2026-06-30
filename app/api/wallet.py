@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user
+from app.api.ntzs_webhooks import process_ntzs_webhook_request
 from app.core.database import get_db
 from app.models.user import User
 from app.models.wallet import TransactionStatus, TransactionType, Wallet, WalletTransaction
@@ -66,31 +67,72 @@ def _reconciliation_sort_key(txn: WalletTransaction, missing_inflow: int):
     return (exact_match, fits_remaining, -timestamp, -txn.amount, txn.id)
 
 
-def _reconcile_completed_deposits(wallet: Wallet, live_balance_tzs: int, db: Session):
-    accounted_balance = _local_completed_balance(wallet.id, db)
-    missing_inflow = max(int(live_balance_tzs or 0) - accounted_balance, 0)
-    if missing_inflow <= 0:
-        return
+def _reconcile_transactions_by_type(
+    *,
+    wallet: Wallet,
+    amount_delta: int,
+    txn_type: TransactionType,
+    db: Session,
+):
+    if amount_delta <= 0:
+        return False
 
-    processing_deposits = (
+    processing_txns = (
         db.query(WalletTransaction)
         .filter(
             WalletTransaction.wallet_id == wallet.id,
-            WalletTransaction.type == TransactionType.DEPOSIT,
+            WalletTransaction.type == txn_type,
             WalletTransaction.status.in_([TransactionStatus.PENDING, TransactionStatus.PROCESSING]),
         )
         .all()
     )
     changed = False
-    remaining_deposits = list(processing_deposits)
-    while missing_inflow > 0 and remaining_deposits:
-        remaining_deposits.sort(key=lambda txn: _reconciliation_sort_key(txn, missing_inflow))
-        txn = remaining_deposits.pop(0)
-        if txn.amount <= missing_inflow:
+    remaining_txns = list(processing_txns)
+    while amount_delta > 0 and remaining_txns:
+        remaining_txns.sort(key=lambda txn: _reconciliation_sort_key(txn, amount_delta))
+        txn = remaining_txns.pop(0)
+        if txn.amount <= amount_delta:
             txn.status = TransactionStatus.COMPLETED
             txn.completed_at = txn.completed_at or datetime.now(timezone.utc)
-            missing_inflow -= txn.amount
+            amount_delta -= txn.amount
             changed = True
+    return changed
+
+
+def _reconcile_live_balance(wallet: Wallet, live_balance_tzs: int, db: Session):
+    accounted_balance = _local_completed_balance(wallet.id, db)
+    previous_synced_balance = int(wallet.balance_tzs or 0)
+    live_balance_tzs = int(live_balance_tzs or 0)
+    changed = False
+    if live_balance_tzs < previous_synced_balance:
+        changed = _reconcile_transactions_by_type(
+            wallet=wallet,
+            amount_delta=previous_synced_balance - live_balance_tzs,
+            txn_type=TransactionType.WITHDRAWAL,
+            db=db,
+        ) or changed
+    elif live_balance_tzs > previous_synced_balance:
+        changed = _reconcile_transactions_by_type(
+            wallet=wallet,
+            amount_delta=live_balance_tzs - previous_synced_balance,
+            txn_type=TransactionType.DEPOSIT,
+            db=db,
+        ) or changed
+
+    if live_balance_tzs > accounted_balance:
+        changed = _reconcile_transactions_by_type(
+            wallet=wallet,
+            amount_delta=live_balance_tzs - accounted_balance,
+            txn_type=TransactionType.DEPOSIT,
+            db=db,
+        ) or changed
+    elif live_balance_tzs < accounted_balance:
+        changed = _reconcile_transactions_by_type(
+            wallet=wallet,
+            amount_delta=accounted_balance - live_balance_tzs,
+            txn_type=TransactionType.WITHDRAWAL,
+            db=db,
+        ) or changed
 
     if changed:
         db.commit()
@@ -107,7 +149,7 @@ async def _sync_wallet_balance(user: User, wallet: Wallet, db: Session):
         phone=user.phone,
     )
     live_balance_tzs = int(profile.get("balanceTzs") or profile.get("balance") or 0)
-    _reconcile_completed_deposits(wallet, live_balance_tzs, db)
+    _reconcile_live_balance(wallet, live_balance_tzs, db)
     wallet.balance_tzs = live_balance_tzs
     wallet.updated_at = datetime.now(timezone.utc)
     db.commit()
@@ -122,8 +164,7 @@ async def _refresh_processing_transactions(user: User, wallet: Wallet, db: Sessi
             WalletTransaction.wallet_id == wallet.id,
             WalletTransaction.status.in_([TransactionStatus.PENDING, TransactionStatus.PROCESSING]),
         )
-        .order_by(WalletTransaction.created_at.desc())
-        .limit(10)
+        .order_by(WalletTransaction.created_at.asc())
         .all()
     )
 
@@ -456,45 +497,4 @@ async def send_to_user(
 
 @router.post("/webhooks/ntzs")
 async def wallet_webhook(request: Request, db: Session = Depends(get_db)):
-    body = await request.body()
-    sig = request.headers.get("x-ntzs-signature")
-    if not ntzs_service.verify_webhook_signature(body, sig):
-        raise HTTPException(status_code=400, detail="Invalid webhook signature")
-
-    try:
-        event = await request.json()
-    except Exception as exc:  # pragma: no cover - defensive parsing
-        raise HTTPException(status_code=400, detail="Invalid JSON payload") from exc
-
-    data = event.get("data", {})
-    event_type = event.get("type", "")
-    ref = str(
-        data.get("depositId")
-        or data.get("withdrawalId")
-        or data.get("transferId")
-        or data.get("id")
-        or ""
-    )
-    if not ref:
-        return {"status": "ignored"}
-
-    txn = db.query(WalletTransaction).filter(WalletTransaction.ntzs_reference == ref).first()
-    if not txn:
-        return {"status": "not_found"}
-
-    wallet = db.query(Wallet).filter(Wallet.id == txn.wallet_id).first()
-    user = db.query(User).filter(User.id == wallet.user_id).first() if wallet else None
-    if event_type in {"deposit.completed", "withdrawal.completed"}:
-        txn.status = TransactionStatus.COMPLETED
-        txn.completed_at = txn.completed_at or datetime.now(timezone.utc)
-        db.commit()
-        if wallet and user:
-            await _sync_wallet_balance(user, wallet, db)
-    elif event_type in {"deposit.failed", "withdrawal.failed"}:
-        txn.status = TransactionStatus.FAILED
-        db.commit()
-    else:
-        txn.status = TransactionStatus.PROCESSING
-        db.commit()
-
-    return {"status": "ok"}
+    return await process_ntzs_webhook_request(request, db)

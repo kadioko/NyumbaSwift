@@ -64,4 +64,27 @@ describe('api request handling', () => {
       status: 0,
     })
   })
+
+  it('supports an absolute backend base url from VITE_API_BASE_URL', async () => {
+    globalThis.fetch.mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ id: 1 }),
+    })
+
+    const previous = import.meta.env.VITE_API_BASE_URL
+    import.meta.env.VITE_API_BASE_URL = 'https://nyumbaswift-production.up.railway.app'
+
+    vi.resetModules()
+    const { wallet } = await loadApiModule()
+    await wallet.get()
+
+    expect(globalThis.fetch).toHaveBeenCalledWith(
+      'https://nyumbaswift-production.up.railway.app/api/v1/wallet/',
+      expect.any(Object),
+    )
+
+    import.meta.env.VITE_API_BASE_URL = previous
+    vi.resetModules()
+  })
 })
