@@ -444,7 +444,7 @@ def test_shared_ntzs_webhook_updates_both_transfer_transactions(client, mock_wal
 
     webhook_resp = client.post(
         "/api/v1/ntzs/webhooks",
-        data=payload,
+        content=payload,
         headers={"x-ntzs-signature": signature, "Content-Type": "application/json"},
     )
     assert webhook_resp.status_code == 200
